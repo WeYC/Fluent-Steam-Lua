@@ -232,7 +232,6 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
 
         SteamPath = _settings.SteamPath;
         IsAutoRefreshEnabled = _settings.AutoRefreshEnabled;
-        IsFabVisible = _settings.IsFabVisible;
         IsCardRefreshVisible = _settings.IsCardRefreshVisible;
         ManifestMirror = GitHubMirror.NormalizePreferredHost(_settings.ManifestMirror);
         AutoFetchCovers = _settings.AutoFetchCovers;
@@ -338,14 +337,6 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
         _settingsService.Save(_settings);
         _steamApiService.UpdateCdnPreference(value);
         StatusMessage = L.Get("Settings_CdnSwitched", CdnDisplayLabel(value));
-        LogService.Info(L.Get("LogCat_Settings"), StatusMessage);
-    }
-
-    partial void OnIsFabVisibleChanged(bool value)
-    {
-        _settings.IsFabVisible = value;
-        _settingsService.Save(_settings);
-        StatusMessage = value ? L.Get("Settings_FabShown") : L.Get("Settings_FabHidden");
         LogService.Info(L.Get("LogCat_Settings"), StatusMessage);
     }
 
@@ -987,9 +978,6 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
             IsMirrorSpeedTesting = false;
         }
     }
-
-    [ObservableProperty]
-    private bool _isFabVisible = true;
 
     [ObservableProperty]
     private bool _isCardRefreshVisible = true;

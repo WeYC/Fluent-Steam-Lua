@@ -2,9 +2,8 @@
                      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                      xmlns:ui="http://schemas.inkore.net/lib/ui/wpf/modern">
 
-    <!-- 浮层阴影：仅用于菜单面板 / 遮罩卡片 / FAB，静态卡片保持平面 -->
+    <!-- 浮层阴影：仅用于菜单面板 / 遮罩卡片，静态卡片保持平面 -->
     <DropShadowEffect x:Key="FloatingShadow" BlurRadius="16" ShadowDepth="4" Direction="270" Opacity="0.3"/>
-    <DropShadowEffect x:Key="FabShadow" BlurRadius="12" ShadowDepth="3" Direction="270" Opacity="0.32"/>
 
     <!-- Home 卡片细节色：深色打底保证白色图标两主题可读 -->
     <SolidColorBrush x:Key="CardRefreshButtonFill" Color="#AA000000"/>

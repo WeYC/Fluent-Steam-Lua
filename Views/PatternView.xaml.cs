@@ -1,27 +1,21 @@
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Animation;
 using System.Threading;
-using iNKORE.UI.WPF.Modern;
 using iNKORE.UI.WPF.Modern.Controls;
-using iNKORE.UI.WPF.Modern.Controls.Helpers;
-using iNKORE.UI.WPF.Modern.Helpers.Styles;
 using CommunityToolkit.Mvvm.Messaging;
-using Microsoft.Extensions.DependencyInjection;
 using SteamLuaManager.Models;
 using SteamLuaManager.Services;
 
 namespace SteamLuaManager.Views;
 
-// OpenSteamTool 独立管理窗：内核安装/更新/启禁用/卸载/净化/取toml，外加入口注入方式切换。
-// 逻辑从主窗口浮动子菜单迁移而来，仅承载内核管理，故用模态打开、一次只对一个窗口操作。
-public partial class OpenSteamToolWindow : Window
+// 「模式」页：OpenSteamTool 内核安装/更新/启禁用/卸载/净化/取toml，外加入口注入方式切换。
+// 内容从原独立管理窗迁移而来，改为随导航常驻的页面，省掉一层模态窗。
+public partial class PatternView : UserControl
 {
     private readonly IOpenSteamToolService _service;
     private readonly ISteamPathService _steamPathService;
@@ -29,59 +23,25 @@ public partial class OpenSteamToolWindow : Window
     private CancellationTokenSource? _tomlCts;
     private bool _tomlFetching;
 
-    public OpenSteamToolWindow(IOpenSteamToolService service, ISteamPathService steamPathService)
+    public PatternView(IOpenSteamToolService service, ISteamPathService steamPathService)
     {
         _service = service;
         _steamPathService = steamPathService;
         InitializeComponent();
-        // 套上 Modern 窗样式与系统材质，否则深色主题下白字落在默认白底窗上会整窗隐形
-        WindowHelper.SetUseModernWindowStyle(this, true);
-        WindowHelper.SetCornerStyle(this, WindowCornerStyle.Round);
-        ApplyBackdrop();
-        // {l:Loc} 绑定随语言自动刷新，代码里拼的状态文本得手动重建
-        LocalizationService.Instance.PropertyChanged += OnLocalizationChanged;
-        Closed += (_, _) => LocalizationService.Instance.PropertyChanged -= OnLocalizationChanged;
-        Loaded += (_, _) => RefreshState();
-    }
-
-    // 材质跟随设置里的背景选择；浅色/深色分别走不同的 Acrylic 底色，纯色模式直接给实底
-    private void ApplyBackdrop()
-    {
-        try
+        // {l:Loc} 绑定随语言自动刷新，代码里拼的状态文本得手动重建。
+        // 页面被缓存复用，每次挂回导航都会重新 Loaded，于是在 Loaded/Unloaded 上成对订阅反订阅，避免泄漏
+        Loaded += (_, _) =>
         {
-            var backdropType = App.ServiceProvider?.GetRequiredService<ISettingsService>().Load().SelectedBackdrop
-                               ?? "Acrylic10";
-            if (!Enum.TryParse<BackdropType>(backdropType, true, out var parsedBackdrop))
-                parsedBackdrop = BackdropType.Acrylic10;
-            WindowHelper.SetSystemBackdropType(this, parsedBackdrop);
-            var isLight = ThemeManager.Current.ActualApplicationTheme == ApplicationTheme.Light;
-            if (parsedBackdrop == BackdropType.None)
-            {
-                Background = isLight
-                    ? new SolidColorBrush(Color.FromArgb(0xFF, 0xF5, 0xF5, 0xF5))
-                    : new SolidColorBrush(Color.FromArgb(0xFF, 0x1E, 0x1E, 0x1E));
-            }
-            else
-            {
-                if (isLight)
-                {
-                    BackdropHelper.RemoveDarkMode(this);
-                    WindowHelper.SetAcrylic10Color(this, Color.FromArgb(0xF0, 0xF5, 0xF5, 0xF5));
-                }
-                else
-                {
-                    WindowHelper.SetAcrylic10Color(this, Color.FromArgb(0xCC, 0x1E, 0x1E, 0x1E));
-                    BackdropHelper.ApplyDarkMode(this);
-                }
-                Background = null;
-            }
-        }
-        catch { }
+            LocalizationService.Instance.PropertyChanged -= OnLocalizationChanged;
+            LocalizationService.Instance.PropertyChanged += OnLocalizationChanged;
+            RefreshState();
+        };
+        Unloaded += (_, _) => LocalizationService.Instance.PropertyChanged -= OnLocalizationChanged;
     }
 
     private void OnLocalizationChanged(object? sender, PropertyChangedEventArgs e) => RefreshState();
 
-    private void RefreshState()
+    public void RefreshState()
     {
         var steamPath = _service.GetSteamPath();
         SteamPathText.Text = steamPath ?? L.Get("Home_SteamNotFound");
@@ -377,7 +337,7 @@ public partial class OpenSteamToolWindow : Window
             var restart = await ShowConfirmAsync(
                 L.Get("Ost_InjectSwitched"),
                 L.Get("Ost_InjectSwitchedBody", name),
-                L.Get("Main_FabRestart"),
+                L.Get("Main_RestartSteam"),
                 L.Get("Common_Confirm"));
             if (restart)
             {
@@ -996,7 +956,7 @@ public partial class OpenSteamToolWindow : Window
                 MaxHeight = 440,
                 VerticalScrollBarVisibility = ScrollBarVisibility.Auto
             },
-            PrimaryButtonText = anyOk ? L.Get("Main_FabRestart") : L.Get("Common_Confirm"),
+            PrimaryButtonText = anyOk ? L.Get("Main_RestartSteam") : L.Get("Common_Confirm"),
             SecondaryButtonText = anyOk ? L.Get("Common_Confirm") : null,
             DefaultButton = ContentDialogButton.Primary
         };

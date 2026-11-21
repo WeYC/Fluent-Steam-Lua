@@ -1,15 +1,14 @@
-﻿<Window x:Class="SteamLuaManager.Views.OpenSteamToolWindow"
+<UserControl xmlns:controls="clr-namespace:SteamLuaManager.Controls" x:Class="SteamLuaManager.Views.PatternView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:l="clr-namespace:SteamLuaManager.Markup"
         xmlns:ui="http://schemas.inkore.net/lib/ui/wpf/modern"
-        Title="{l:Loc Ost_WindowTitle}" Width="780" Height="780" MinWidth="640" MinHeight="560"
-        WindowStartupLocation="CenterOwner"
+        Background="Transparent"
         TextOptions.TextFormattingMode="Display"
         TextOptions.TextRenderingMode="Grayscale"
         UseLayoutRounding="True"
         SnapsToDevicePixels="True">
-    <Window.Resources>
+    <UserControl.Resources>
         <!-- 卡片式操作按钮：整块可点；悬停走叠加层提亮，不覆盖底色，危险项的红底因此得以保留。
              内容全自定义（图标块 + 标题 + 说明 + 右箭头），底色与描边走 TemplateBinding -->
         <Style x:Key="TileButtonStyle" TargetType="Button">
@@ -46,12 +45,16 @@
                 </Setter.Value>
             </Setter>
         </Style>
-    </Window.Resources>
+    </UserControl.Resources>
 
     <Grid>
-        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
-                      Padding="24,18,24,18">
-            <StackPanel>
+        <controls:SmoothScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="36,24,36,24">
+
+                <TextBlock Text="{l:Loc Pattern_Title}" FontSize="28" FontWeight="SemiBold" Margin="0,0,0,4"
+                           Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                <TextBlock Text="{l:Loc Pattern_Desc}" FontSize="12" Margin="0,0,0,20" TextWrapping="Wrap"
+                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
 
                 <!-- 状态卡：四分栏，栏间竖线分隔 -->
                 <Border CornerRadius="10" BorderThickness="1"
@@ -451,9 +454,9 @@
                 </Border>
 
             </StackPanel>
-        </ScrollViewer>
+        </controls:SmoothScrollViewer>
 
-        <!-- 内核安装/更新遮罩层 -->
+        <!-- 内核安装/更新遮罩层（限定在本页内容区内） -->
         <Grid x:Name="KernelOverlayGrid" Panel.ZIndex="210"
               Visibility="Collapsed" Background="#80000000" IsHitTestVisible="True">
             <Border HorizontalAlignment="Center" VerticalAlignment="Center"
@@ -488,4 +491,4 @@
             </Border>
         </Grid>
     </Grid>
-</Window>
+</UserControl>

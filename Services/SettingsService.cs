@@ -19,7 +19,6 @@ public class AppSettings
     public string Language { get; set; } = LocalizationService.GetSystemLanguage();
     public string DownloadMode { get; set; } = "DepotKey";
     public string KeyFolderPath { get; set; } = string.Empty;
-    public bool IsFabVisible { get; set; } = true;
     public bool IsCardRefreshVisible { get; set; } = true;
     public string SelectedTheme { get; set; } = "System";
     public bool AutoCheckUpdateEnabled { get; set; } = true;

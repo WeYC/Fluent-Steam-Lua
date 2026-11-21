@@ -257,13 +257,6 @@ Style="{StaticResource SettingsCardStyle}">
                               </ComboBox>
                         </ui:SettingsCard>
 
-                        <ui:SettingsCard Header="{l:Loc Settings_Fab}" Margin="0,0,0,8"
-                                         Description="{l:Loc Settings_FabDesc}"
-Style="{StaticResource SettingsCardStyle}">
-                            <ui:ToggleSwitch IsOn="{Binding IsFabVisible}"
-                                             OnContent="{l:Loc Common_On}" OffContent="{l:Loc Common_Off}"/>
-                        </ui:SettingsCard>
-
                         <ui:SettingsCard Header="{l:Loc Settings_CardRefresh}" Margin="0,0,0,8"
                                          Description="{l:Loc Settings_CardRefreshDesc}"
 Style="{StaticResource SettingsCardStyle}">
