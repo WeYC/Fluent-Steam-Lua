@@ -1687,7 +1687,7 @@
   "Manifest_AutoStopCode": "Auto-stopped Code monitor (mutually exclusive)",
   "Manifest_KeySaved": "API Key saved",
   "Manifest_KeyEmpty": "No API Key entered",
-  "About_Desc1": "A modern library management tool built with WPF + Fluent",
+  "About_Desc1": "A modern library management tool built with WPF",
   "About_Desc2": "Currently supports OpenSteamTool only",
   "About_CheckUpdate": "Check Updates",
   "About_Feedback": "Feedback",

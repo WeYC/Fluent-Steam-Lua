@@ -2,7 +2,7 @@ using System.Net.Http;
 using System.IO;
 using System.Text.Json;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 // Steam 官方内容服务器列表：匿名可调，按 weighted_load 排序轮询。
 // cell 取 Steam 客户端自己的 CellID（读不到则用 0 让服务端按 IP 就近）。

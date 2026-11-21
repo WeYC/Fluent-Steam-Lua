@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 internal static class FolderPicker
 {

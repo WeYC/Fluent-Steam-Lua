@@ -6,7 +6,7 @@ using System.Text.Json;
 using System.Threading;
 using Microsoft.Win32;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 /// <summary>
 /// 授权提取 worker 子进程入口：进程启动时设置 SteamAppId / SteamGameId，

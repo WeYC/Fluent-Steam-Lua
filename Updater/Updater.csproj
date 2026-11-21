@@ -12,7 +12,7 @@
   <ItemGroup>
     <Compile Include="..\Services\LocalizationService.cs" Link="LocalizationService.cs" />
     <Compile Include="..\Services\L.cs" Link="L.cs" />
-    <EmbeddedResource Include="..\Resources\Lang\*.json" LogicalName="SteamLuaManager.Resources.Lang.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="..\Resources\Lang\*.json" LogicalName="SteamLua.Resources.Lang.%(Filename)%(Extension)" />
   </ItemGroup>
 
 </Project>

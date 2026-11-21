@@ -1687,7 +1687,7 @@
   "Manifest_AutoStopCode": "已自动停止 Code 监听（双监听互斥）",
   "Manifest_KeySaved": "API Key 已保存",
   "Manifest_KeyEmpty": "未填写 API Key",
-  "About_Desc1": "该项目是基于 WPF + Fluent 开发的现代化入库管理工具",
+  "About_Desc1": "该项目是基于 WPF 开发的现代化入库管理工具",
   "About_Desc2": "目前仅适配 OpenSteamTool",
   "About_CheckUpdate": "检查更新",
   "About_Feedback": "问题反馈",

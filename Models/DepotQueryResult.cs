@@ -1,4 +1,4 @@
-namespace SteamLuaManager.Models;
+namespace SteamLua.Models;
 
 public class DepotKeyInfo
 {

@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace SteamLuaManager.Models;
+namespace SteamLua.Models;
 
 public class CheatOption
 {

@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 // 我从直提 demo 里搬过来的最小 VDF 文本解析器：引号串（含 \" \\ 转义）+ 裸 token + 花括号嵌套。
 // Steam 的 loginusers.vdf / local.vdf 都是这个格式，值只可能是 string 或嵌套块。

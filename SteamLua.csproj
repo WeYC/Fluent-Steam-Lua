@@ -10,8 +10,8 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName Condition="'$(AppExeName)' != ''">$(AppExeName)</AssemblyName>
-    <AssemblyName Condition="'$(AppExeName)' == ''">SteamLuaManager</AssemblyName>
-    <RootNamespace>SteamLuaManager</RootNamespace>
+    <AssemblyName Condition="'$(AppExeName)' == ''">SteamLua</AssemblyName>
+    <RootNamespace>SteamLua</RootNamespace>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
     <Title>SteamLua</Title>
     <Product>SteamLua</Product>
@@ -197,7 +197,7 @@
             {
                 using var http = new HttpClient();
                 http.Timeout = TimeSpan.FromSeconds(60);
-                http.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "SteamLuaManager-Build");
+                http.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "SteamLua-Build");
 
                 // 先取远端 .sha256（几十字节）与本地缓存比对：内容一致说明上游没发新版，直接跳过下载
                 var shaText = http.GetStringAsync($"{baseUrl}/{dllName}.sha256").GetAwaiter().GetResult();
@@ -278,7 +278,7 @@
             var slug = repoUrl.Substring("https://github.com/".Length).Trim('/');
             using var http = new HttpClient();
             http.Timeout = TimeSpan.FromSeconds(30);
-            http.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "SteamLuaManager-Build");
+            http.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "SteamLua-Build");
             http.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "application/vnd.github+json");
             using var resp = http.GetAsync($"https://api.github.com/repos/{slug}/releases/latest").GetAwaiter().GetResult();
             if (!resp.IsSuccessStatusCode) return null;
@@ -301,7 +301,7 @@
             using var handler = new HttpClientHandler { AllowAutoRedirect = false };
             using var http = new HttpClient(handler);
             http.Timeout = TimeSpan.FromSeconds(30);
-            http.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "SteamLuaManager-Build");
+            http.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "SteamLua-Build");
             using var resp = http.GetAsync($"{repoUrl}/releases/latest").GetAwaiter().GetResult();
             var location = resp.Headers.Location == null ? "" : resp.Headers.Location.ToString();
             var idx = location.IndexOf("/tag/", StringComparison.OrdinalIgnoreCase);
@@ -369,7 +369,7 @@
     </PropertyGroup>
     <ItemGroup>
       <CloudRedirectInfoLine Include="// &lt;auto-generated /&gt; Generated at build time from CloudRedirect release. Do not edit. Not committed." />
-      <CloudRedirectInfoLine Include="namespace SteamLuaManager.Services%3B" />
+      <CloudRedirectInfoLine Include="namespace SteamLua.Services%3B" />
       <CloudRedirectInfoLine Include="internal static class CloudRedirectInfo" />
       <CloudRedirectInfoLine Include="{" />
       <CloudRedirectInfoLine Include="    internal const string BundledVersion = &quot;$(_CloudRedirectTag)&quot;%3B" />
@@ -388,7 +388,7 @@
     </PropertyGroup>
     <ItemGroup>
       <FeedbackSecretLine Include="// &lt;auto-generated /&gt; Generated at build time from env RESEND_API_KEY. Do not edit. Not committed." />
-      <FeedbackSecretLine Include="namespace SteamLuaManager.Services%3B" />
+      <FeedbackSecretLine Include="namespace SteamLua.Services%3B" />
       <FeedbackSecretLine Include="internal static class FeedbackSecrets" />
       <FeedbackSecretLine Include="{" />
       <FeedbackSecretLine Include="    internal const string ResendApiKey = &quot;$(ResendKeyClean)&quot;%3B" />

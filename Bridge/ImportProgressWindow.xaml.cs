@@ -7,7 +7,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 
-namespace FluentLuaBridge;
+namespace SteamLuaBridge;
 
 /// <summary>
 /// 入库行为链窗口。整窗是一张圆角卡片：

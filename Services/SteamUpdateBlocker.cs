@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 /// <summary>
 /// 通过 Steam 根目录下的 steam.cfg 关闭客户端自动更新。

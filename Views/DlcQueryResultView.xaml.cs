@@ -7,10 +7,10 @@ using iNKORE.UI.WPF.Modern;
 using iNKORE.UI.WPF.Modern.Controls;
 using iNKORE.UI.WPF.Modern.Controls.Helpers;
 using iNKORE.UI.WPF.Modern.Helpers.Styles;
-using SteamLuaManager.Models;
-using SteamLuaManager.Services;
+using SteamLua.Models;
+using SteamLua.Services;
 
-namespace SteamLuaManager.Views;
+namespace SteamLua.Views;
 
 public class DlcQueryResultView : Window
 {
@@ -140,7 +140,7 @@ public class DlcQueryResultView : Window
         grid.Children.Add(headerPanel);
 
         // DLC list
-        var scroll = new SteamLuaManager.Controls.SmoothScrollViewer { VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
+        var scroll = new SteamLua.Controls.SmoothScrollViewer { VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
         _itemsStack = new StackPanel { Margin = new Thickness(0, 0, 6, 0) };
         scroll.Content = _itemsStack;
         Grid.SetRow(scroll, 1);

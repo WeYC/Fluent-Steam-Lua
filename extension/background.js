@@ -33,7 +33,7 @@ async function call(path, options) {
 }
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  if (!msg || msg.type !== 'fluent-import') return false;
+  if (!msg || msg.type !== 'steamlua-import') return false;
 
   (async () => {
     try {

@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace SteamLuaManager.Models;
+namespace SteamLua.Models;
 
 public class DownloadedTrainerItem : INotifyPropertyChanged
 {

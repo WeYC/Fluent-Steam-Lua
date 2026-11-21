@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "版本号（例如 1.4.5；支持 1.4.8.1 或 1.4.8-fix，空格会自动转连字符）"
+        description: "版本号（例如 0.0.0；支持 0.0.0.0 或 0.0.0-fix，空格会自动转连字符）"
         required: true
       prerelease:
         description: "预发布版本"
@@ -47,7 +47,7 @@ jobs:
       - name: Bump csproj version and push
         shell: pwsh
         run: |
-          $csproj = 'SteamLuaManager.csproj'
+          $csproj = 'SteamLua.csproj'
           $text = [System.IO.File]::ReadAllText((Resolve-Path $csproj).Path)
           $updated = [System.Text.RegularExpressions.Regex]::Replace(
             $text, '<Version>[^<]*</Version>', '<Version>${{ env.VERSION }}</Version>')
@@ -56,7 +56,7 @@ jobs:
             (Resolve-Path $csproj).Path, $updated, (New-Object System.Text.UTF8Encoding($false)))
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
-          git add SteamLuaManager.csproj
+          git add SteamLua.csproj
           git commit -m 'update: 版本号更新${{ env.VERSION }}'
           git push origin HEAD:main
 
@@ -67,10 +67,10 @@ jobs:
           git push origin '${{ env.VERSION }}'
 
       - name: Publish loose-file version
-        run: dotnet publish SteamLuaManager.csproj -c Release -r win-x64 --self-contained false -p:DebugType=none -p:Version=${{ env.VERSION }} -o publish/loose
+        run: dotnet publish SteamLua.csproj -c Release -r win-x64 --self-contained false -p:DebugType=none -p:Version=${{ env.VERSION }} -o publish/loose
 
       - name: Publish single-file version
-        run: dotnet publish SteamLuaManager.csproj -c Release -r win-x64 --self-contained false -p:DebugType=none -p:AppExeName="SteamLua" -p:PublishSingleFile=true -p:Version=${{ env.VERSION }} -o publish/single
+        run: dotnet publish SteamLua.csproj -c Release -r win-x64 --self-contained false -p:DebugType=none -p:AppExeName="SteamLua" -p:PublishSingleFile=true -p:Version=${{ env.VERSION }} -o publish/single
 
       - name: Pack archives
         shell: pwsh

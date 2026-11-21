@@ -43,7 +43,7 @@ namespace SAM.API
             if (objectAddress == IntPtr.Zero)
             {
                 throw new InvalidOperationException(
-                    SteamLuaManager.L.Get("App_SteamInterfaceUnavailable", typeof(TNativeFunctions).Name));
+                    SteamLua.L.Get("App_SteamInterfaceUnavailable", typeof(TNativeFunctions).Name));
             }
 
             this.ObjectAddress = objectAddress;

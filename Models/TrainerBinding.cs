@@ -1,9 +1,9 @@
 using System.IO;
 using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
-using SteamLuaManager.Services;
+using SteamLua.Services;
 
-namespace SteamLuaManager.Models;
+namespace SteamLua.Models;
 
 public partial class TrainerBinding : ObservableObject
 {

@@ -8,14 +8,14 @@ using System.Windows;
 using System.Windows.Controls;
 using iNKORE.UI.WPF.Modern.Controls;
 using Microsoft.Extensions.DependencyInjection;
-using SteamLuaManager;
-using SteamLuaManager.Services;
+using SteamLua;
+using SteamLua.Services;
 
-namespace SteamLuaManager.Views;
+namespace SteamLua.Views;
 
 public partial class AboutView : UserControl, INotifyPropertyChanged
 {
-    private const string ProjectUrl = "https://github.com/huanyuejue/Fluent-Steam-Lua";
+    private const string ProjectUrl = "https://github.com/WeYC/SteamLua";
 
     // 附件列表项：存完整路径用于读取，界面只显示文件名
     private sealed class AttachedFileItem

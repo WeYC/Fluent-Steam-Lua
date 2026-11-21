@@ -1,8 +1,8 @@
 using System.IO;
 using System.Text.Json;
-using SteamLuaManager.Models;
+using SteamLua.Models;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 public class AppSettings
 {

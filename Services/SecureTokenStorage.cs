@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 // 我拿 DPAPI（当前 Windows 用户隔离）存取敏感字符串，refresh token 这类凭证只存密文。
 // 换机器/换系统用户就解不开，这是系统级保证，不是我加的限制。

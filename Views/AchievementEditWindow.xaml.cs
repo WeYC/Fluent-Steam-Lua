@@ -5,10 +5,10 @@ using iNKORE.UI.WPF.Modern.Controls;
 using iNKORE.UI.WPF.Modern.Controls.Helpers;
 using iNKORE.UI.WPF.Modern.Helpers.Styles;
 using Microsoft.Extensions.DependencyInjection;
-using SteamLuaManager.Services;
-using SteamLuaManager.ViewModels;
+using SteamLua.Services;
+using SteamLua.ViewModels;
 
-namespace SteamLuaManager.Views;
+namespace SteamLua.Views;
 
 public partial class AchievementEditWindow : Window
 {

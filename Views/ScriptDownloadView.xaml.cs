@@ -6,11 +6,11 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Diagnostics;
 using iNKORE.UI.WPF.Modern.Controls;
-using SteamLuaManager.Models;
-using SteamLuaManager.Services;
-using SteamLuaManager.ViewModels;
+using SteamLua.Models;
+using SteamLua.Services;
+using SteamLua.ViewModels;
 
-namespace SteamLuaManager.Views;
+namespace SteamLua.Views;
 
 public partial class ScriptDownloadView : UserControl
 {

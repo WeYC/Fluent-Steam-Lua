@@ -2,7 +2,7 @@
 using System.Windows;
 using System.Windows.Data;
 
-namespace SteamLuaManager.Converters;
+namespace SteamLua.Converters;
 
 public class BoolToVisibilityConverter : IValueConverter
 {
@@ -69,8 +69,8 @@ public class BoolInvertConverter : IValueConverter
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         if (value is bool b && b)
-            return SteamLuaManager.L.Get("Common_Stop");
-        return SteamLuaManager.L.Get("Auth_ExtractBtn");
+            return SteamLua.L.Get("Common_Stop");
+        return SteamLua.L.Get("Auth_ExtractBtn");
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -147,8 +147,8 @@ public class BoolToRunStopConverter : IValueConverter
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         if (value is bool b && b)
-            return SteamLuaManager.L.Get("Auth_Stop");
-        return SteamLuaManager.L.Get("Auth_ExtractBtn");
+            return SteamLua.L.Get("Auth_Stop");
+        return SteamLua.L.Get("Auth_ExtractBtn");
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -162,8 +162,8 @@ public class BoolToDownloadTextConverter : IValueConverter
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         if (value is bool downloaded && downloaded)
-            return SteamLuaManager.L.Get("Trainer_Open");
-        return SteamLuaManager.L.Get("Trainer_Download");
+            return SteamLua.L.Get("Trainer_Open");
+        return SteamLua.L.Get("Trainer_Download");
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

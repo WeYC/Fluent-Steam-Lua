@@ -3,9 +3,9 @@ using System.IO;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
-using SteamLuaManager.Models;
+using SteamLua.Models;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 public class SteamApiService : ISteamApiService
 {

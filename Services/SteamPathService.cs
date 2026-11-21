@@ -5,7 +5,7 @@ using Microsoft.Win32;
 using Tomlyn;
 using Tomlyn.Model;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 public class SteamPathService : ISteamPathService
 {

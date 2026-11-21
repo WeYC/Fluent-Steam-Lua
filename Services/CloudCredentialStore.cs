@@ -1,7 +1,7 @@
 using System.IO;
 using System.Text;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 // 按上游 companion 与 DLL 的约定存取凭证文件：JSON 明文经 DPAPI（当前用户、无附加熵）
 // 加密后原子落盘；读到遗留明文（首字节 '{'）直接沿用。加解密已收敛到 SecureTokenStorage

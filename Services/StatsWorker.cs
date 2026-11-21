@@ -4,7 +4,7 @@ using System.IO.Pipes;
 using System.Text;
 using System.Text.Json;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 /// <summary>worker 子进程模式：进程启动时设置 SteamAppId 再初始化 steamclient，
 /// 避免单进程内 SteamAppId 上下文固定无法切换游戏的问题（SAM 同款架构）。</summary>

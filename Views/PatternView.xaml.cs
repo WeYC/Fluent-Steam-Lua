@@ -8,10 +8,10 @@ using System.Windows.Media;
 using System.Threading;
 using iNKORE.UI.WPF.Modern.Controls;
 using CommunityToolkit.Mvvm.Messaging;
-using SteamLuaManager.Models;
-using SteamLuaManager.Services;
+using SteamLua.Models;
+using SteamLua.Services;
 
-namespace SteamLuaManager.Views;
+namespace SteamLua.Views;
 
 // 「模式」页：OpenSteamTool 内核安装/更新/启禁用/卸载/净化/取toml，外加入口注入方式切换。
 // 内容从原独立管理窗迁移而来，改为随导航常驻的页面，省掉一层模态窗。

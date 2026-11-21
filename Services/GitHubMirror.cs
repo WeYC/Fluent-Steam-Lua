@@ -1,4 +1,4 @@
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 // GitHub 访问国内加速：release 包走公共 gh-proxy 前缀链，直连永远第一位，
 // 镜像挂了自动退化成直连行为（清单获取已走 ManifestHub 直连，不再经这里）。

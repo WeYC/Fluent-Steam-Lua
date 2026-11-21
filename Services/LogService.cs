@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 public static class LogService
 {

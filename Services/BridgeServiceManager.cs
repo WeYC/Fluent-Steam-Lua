@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 /// <summary>
 /// 商店页一键入库桥接进程的部署与生命周期管理。
@@ -64,13 +64,13 @@ public interface IBridgeServiceManager
 
 public sealed class BridgeServiceManager : IBridgeServiceManager
 {
-    private const string ProcessName = "FluentLuaBridge";
+    private const string ProcessName = "SteamLuaBridge";
 
     // 与 Bridge 项目 BridgeConstants.Port 必须保持一致：
     // 扩展的 host_permissions 也写死了这个端口，三处改动要同步
     private const int BridgePort = 27361;
     // 内嵌资源名带根命名空间前缀，只写文件名取不到
-    private const string EmbeddedPackage = "SteamLuaManager.Resources.Bridge.zip";
+    private const string EmbeddedPackage = "SteamLua.Resources.Bridge.zip";
 
     // 部署指纹文件名：记录上次展开的包内容哈希
     private const string StampFileName = "bridge-deploy.stamp";
@@ -80,8 +80,8 @@ public sealed class BridgeServiceManager : IBridgeServiceManager
 
     private static readonly string[] BridgeFiles =
     {
-        "FluentLuaBridge.exe",
-        "FluentLuaBridge.dll"
+        "SteamLuaBridge.exe",
+        "SteamLuaBridge.dll"
     };
 
     private readonly string _dataRoot;
@@ -97,7 +97,7 @@ public sealed class BridgeServiceManager : IBridgeServiceManager
     public BridgeServiceManager()
     {
         // 允许用环境变量指定部署位置：便于排查部署问题，也方便绿色版把数据放到别处
-        var overrideDir = Environment.GetEnvironmentVariable("FLUENT_BRIDGE_DIR");
+        var overrideDir = Environment.GetEnvironmentVariable("STEAM_LUA_BRIDGE_DIR");
         if (!string.IsNullOrWhiteSpace(overrideDir) && CanWriteTo(overrideDir))
         {
             _dataRoot = overrideDir;
@@ -137,7 +137,7 @@ public sealed class BridgeServiceManager : IBridgeServiceManager
 
     /// <summary>开机自启动在注册表里的位置：当前用户 + 系统自动运行。</summary>
     private const string RunKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
-    private const string RunValueName = "FluentLuaBridge";
+    private const string RunValueName = "SteamLuaBridge";
 
     public bool IsAutoStartEnabled
     {
@@ -251,7 +251,7 @@ public sealed class BridgeServiceManager : IBridgeServiceManager
                 ? Path.GetTempPath()
                 : Path.Combine(profile, "AppData", "Local");
         }
-        return Path.Combine(localAppData, "FluentSteamLua", BridgeDirName);
+        return Path.Combine(localAppData, "SteamLua", BridgeDirName);
     }
 
     public string InstallDirectory => _dataRoot;
@@ -307,10 +307,10 @@ public sealed class BridgeServiceManager : IBridgeServiceManager
             // 把主程序的缓存根目录传给桥接进程，让它复用已有的密钥库，
             // 否则桥接会在自己目录下另存一份十几兆的 depotkeys.json。
             // 这个路径与部署位置无关，始终指向主程序自己的 cache
-            psi.Environment["FLUENT_CACHE_DIR"] = Path.Combine(AppDirectory(), "cache");
+            psi.Environment["STEAM_LUA_CACHE_DIR"] = Path.Combine(AppDirectory(), "cache");
 
             // 日志与主程序放在一起，排查时不用去用户目录里找
-            psi.Environment["FLUENT_LOG_DIR"] = AppDirectory();
+            psi.Environment["STEAM_LUA_LOG_DIR"] = AppDirectory();
 
             Process.Start(psi);
 
@@ -493,7 +493,7 @@ public sealed class BridgeServiceManager : IBridgeServiceManager
             var entry = FindBridgeAssemblyEntry(archive);
             if (entry == null) return null;
 
-            var temp = Path.Combine(Path.GetTempPath(), $"fluent-bridge-probe-{Guid.NewGuid():N}.dll");
+            var temp = Path.Combine(Path.GetTempPath(), $"steamlua-bridge-probe-{Guid.NewGuid():N}.dll");
             try
             {
                 using (var es = entry.Open())

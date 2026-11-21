@@ -4,10 +4,10 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using iNKORE.UI.WPF.Modern.Controls;
-using SteamLuaManager.Services;
-using SteamLuaManager.ViewModels;
+using SteamLua.Services;
+using SteamLua.ViewModels;
 
-namespace SteamLuaManager.Views;
+namespace SteamLua.Views;
 
 public partial class OnlineFixView : UserControl
 {

@@ -9,7 +9,7 @@ using System.Text;
 using System.Text.Json;
 using System.Xml.Linq;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 // 云端存档远端访问：名单 / 时间 / 统计 / 下载 / 删除。
 // 上游前端走内嵌 CLI，本仓库未集成该二进制，改为 C# 原生 REST 实现；

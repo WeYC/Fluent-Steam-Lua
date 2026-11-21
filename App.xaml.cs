@@ -11,12 +11,12 @@ using iNKORE.UI.WPF.Modern;
 using iNKORE.UI.WPF.Modern.Controls;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Win32;
-using SteamLuaManager.Models;
-using SteamLuaManager.Services;
-using SteamLuaManager.ViewModels;
-using SteamLuaManager.Views;
+using SteamLua.Models;
+using SteamLua.Services;
+using SteamLua.ViewModels;
+using SteamLua.Views;
 
-namespace SteamLuaManager;
+namespace SteamLua;
 
 public partial class App : Application
 {
@@ -25,7 +25,7 @@ public partial class App : Application
     private Mutex? _singleInstanceMutex;
 
     /// <summary>单实例互斥量名称（fix 在 worker 子进程逻辑之后）。</summary>
-    private const string SingleInstanceMutexName = "FluentSteamLuaManager_SingleInstance";
+    private const string SingleInstanceMutexName = "SteamLua_SingleInstance";
 
     [DllImport("user32.dll")]
     private static extern bool SetForegroundWindow(IntPtr hWnd);
@@ -241,7 +241,7 @@ public partial class App : Application
         try
         {
             var title = L.Get("App_Title");
-            var legacyTitle = "Fluent Steam Lua 管理工具";
+            var legacyTitle = "SteamLua 管理工具";
             var hwnd = FindWindowByTitlePrefix(title);
             if (hwnd == IntPtr.Zero && !title.Equals(legacyTitle, StringComparison.Ordinal))
                 hwnd = FindWindowByTitlePrefix(legacyTitle);

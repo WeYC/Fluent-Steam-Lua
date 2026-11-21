@@ -4,7 +4,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 public sealed record UpdateCheckResult(bool HasUpdate, Version CurrentVersion, Version LatestVersion, string TagName, string ReleaseUrl, string ReleaseNotes, string LooseAssetUrl, string SingleAssetUrl);
 
@@ -16,8 +16,8 @@ public interface IUpdateService
 public class UpdateService : IUpdateService
 {
     private readonly IHttpClientProvider _httpClientProvider;
-    private const string ProjectUrl = "https://github.com/huanyuejue/Fluent-Steam-Lua";
-    private const string LatestReleaseApiUrl = "https://api.github.com/repos/huanyuejue/Fluent-Steam-Lua/releases/latest";
+    private const string ProjectUrl = "https://github.com/WeYC/SteamLua";
+    private const string LatestReleaseApiUrl = "https://api.github.com/repos/WeYC/SteamLua/releases/latest";
 
     public UpdateService(IHttpClientProvider httpClientProvider)
     {

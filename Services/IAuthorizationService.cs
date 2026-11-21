@@ -1,6 +1,6 @@
-using SteamLuaManager.Models;
+using SteamLua.Models;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 /// <summary>Lua 清单入库状态检测结果。</summary>
 public sealed record LuaManifestCheckResult(

@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using System.IO;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 public record ManifestRequest(int AppId, int DepotId, string ManifestId);
 

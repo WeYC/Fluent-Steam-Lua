@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 public interface IFeedbackService
 {

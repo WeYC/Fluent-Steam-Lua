@@ -1,7 +1,7 @@
 using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace SteamLuaManager.Models;
+namespace SteamLua.Models;
 
 public partial class AchievementGameInfo : ObservableObject
 {

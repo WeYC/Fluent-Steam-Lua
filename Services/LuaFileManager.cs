@@ -2,9 +2,9 @@
 using System.Globalization;
 using System.IO;
 using System.Text.RegularExpressions;
-using SteamLuaManager.Models;
+using SteamLua.Models;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 public class LuaFileManager : ILuaFileManager, IDisposable
 {

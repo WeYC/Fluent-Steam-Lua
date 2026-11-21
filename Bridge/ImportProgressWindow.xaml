@@ -1,4 +1,4 @@
-<Window x:Class="FluentLuaBridge.ImportProgressWindow"
+<Window x:Class="SteamLuaBridge.ImportProgressWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="入库"

@@ -11,10 +11,10 @@ using System.Windows.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using iNKORE.UI.WPF.Modern.Controls;
-using SteamLuaManager.Models;
-using SteamLuaManager.Services;
+using SteamLua.Models;
+using SteamLua.Services;
 
-namespace SteamLuaManager.ViewModels;
+namespace SteamLua.ViewModels;
 
 public partial class ExtractionViewModel : ObservableObject, IDisposable
 {
@@ -226,7 +226,7 @@ public partial class ExtractionViewModel : ObservableObject, IDisposable
             // 6. 单遍拼装：有独立仓库但无 key 的 DLC 行跳过（无权限写了也无效，含与主 depot 同 ID 的 DLC）；
             // 无独立仓库的 DLC 裸行本身就是完整解锁，必须写出；子仓库无 key 不写行；主行/纯主 depot 无 key 保留裸行
             var sb = new StringBuilder();
-            sb.AppendLine("-- lua by Fluent-Steam-Lua (https://github.com/huanyuejue/Fluent-Steam-Lua)");
+            sb.AppendLine("-- lua by SteamLua (https://github.com/WeYC/SteamLua)");
             sb.AppendLine();
 
             var matchedCount = 0;

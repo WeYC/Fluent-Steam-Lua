@@ -4,9 +4,9 @@ using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using SteamLuaManager.Models;
+using SteamLua.Models;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 /// <summary>
 /// 提取调度器（主进程侧）：启动 --ticket-worker 子进程执行 steamclient 原生提取，
@@ -50,7 +50,7 @@ public sealed class SteamTicketExtractor
         {
             var psi = new ProcessStartInfo
             {
-                FileName = Environment.ProcessPath ?? "SteamLuaManager.exe",
+                FileName = Environment.ProcessPath ?? "SteamLua.exe",
                 WorkingDirectory = Path.GetDirectoryName(Environment.ProcessPath) ?? string.Empty,
                 UseShellExecute = false,
                 CreateNoWindow = true

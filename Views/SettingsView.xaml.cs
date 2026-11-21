@@ -2,7 +2,7 @@
 using System.Windows.Controls;
 using System.Windows.Media.Animation;
 
-namespace SteamLuaManager.Views;
+namespace SteamLua.Views;
 
 public partial class SettingsView : UserControl
 {

@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 /// <summary>
 /// 读取 Steam 内置浏览器（CEF）的扩展注册信息，判断入库扩展是否已安装并启用。

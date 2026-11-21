@@ -6,9 +6,9 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.Win32;
 using iNKORE.UI.WPF.Modern.Controls;
-using SteamLuaManager.Services;
+using SteamLua.Services;
 
-namespace SteamLuaManager.Views;
+namespace SteamLua.Views;
 
 // 「Steam」页：启动 / 重启 / 切换账号三个操作，从主窗口浮动按钮菜单迁出，成为固定导航入口。
 // 账号列表取自 Steam 的 loginusers.vdf，切换写 AutoLoginUser 注册表项后拉起 Steam。

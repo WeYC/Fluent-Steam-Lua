@@ -1,8 +1,8 @@
 using System.Diagnostics;
 using System.IO;
-using SteamLuaManager.Models;
+using SteamLua.Models;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 public class TrainerAutoLaunchService : ITrainerAutoLaunchService
 {

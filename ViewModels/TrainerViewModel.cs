@@ -14,11 +14,11 @@ using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using iNKORE.UI.WPF.Modern.Controls;
-using SteamLuaManager.Models;
-using SteamLuaManager.Services;
-using SteamLuaManager.Views;
+using SteamLua.Models;
+using SteamLua.Services;
+using SteamLua.Views;
 
-namespace SteamLuaManager.ViewModels;
+namespace SteamLua.ViewModels;
 
 public partial class TrainerViewModel : ObservableObject, IDisposable
 {
@@ -503,7 +503,7 @@ public partial class TrainerViewModel : ObservableObject, IDisposable
 
     private static string MonitorExePath => Path.Combine(MonitorDir, "SvcMonitor.exe");
 
-    private const string RegistryRunName = "SteamLuaManagerMonitor";
+    private const string RegistryRunName = "SteamLuaMonitor";
 
     private bool IsMonitorInstalled()
     {
@@ -622,7 +622,7 @@ public partial class TrainerViewModel : ObservableObject, IDisposable
         {
             Directory.CreateDirectory(targetDir);
             var assembly = Assembly.GetExecutingAssembly();
-            const string resourceName = "SteamLuaManager.Resources.SvcMonitor.zip";
+            const string resourceName = "SteamLua.Resources.SvcMonitor.zip";
             using var stream = assembly.GetManifestResourceStream(resourceName);
             if (stream == null) return false;
             using var zip = new ZipArchive(stream);

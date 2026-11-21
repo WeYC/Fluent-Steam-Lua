@@ -3,7 +3,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 public class SteamManifestService : ISteamManifestService
 {

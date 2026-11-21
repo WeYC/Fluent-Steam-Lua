@@ -1,6 +1,6 @@
 using SteamKit2;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 /// <summary>
 /// 通过 SteamKit2 匿名登录 + AppAccessToken 向 Steam 服务器查询完整 appinfo 的兜底实现。

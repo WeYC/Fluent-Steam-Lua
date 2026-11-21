@@ -11,9 +11,9 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 using Microsoft.Extensions.DependencyInjection;
-using SteamLuaManager.Services;
+using SteamLua.Services;
 
-namespace FluentLuaBridge;
+namespace SteamLuaBridge;
 
 /// <summary>
 /// 本地回环 HTTP 宿主。手写极简 HTTP 而不走 HttpListener：

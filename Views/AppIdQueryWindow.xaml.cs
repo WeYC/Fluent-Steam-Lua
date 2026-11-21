@@ -5,10 +5,10 @@ using iNKORE.UI.WPF.Modern.Controls;
 using iNKORE.UI.WPF.Modern.Controls.Helpers;
 using iNKORE.UI.WPF.Modern.Helpers.Styles;
 using Microsoft.Extensions.DependencyInjection;
-using SteamLuaManager.Services;
-using SteamLuaManager.ViewModels;
+using SteamLua.Services;
+using SteamLua.ViewModels;
 
-namespace SteamLuaManager.Views;
+namespace SteamLua.Views;
 
 // AppID 查询二级窗：初进按目录名自动搜一轮；选中即 DialogResult=true 关闭，调用方读 SelectedAppId
 public partial class AppIdQueryWindow : Window

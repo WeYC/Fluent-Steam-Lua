@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using System.Windows;
 
-namespace FluentLuaBridge;
+namespace SteamLuaBridge;
 
 /// <summary>
 /// 商店页一键入库的桥接进程入口。

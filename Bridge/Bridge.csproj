@@ -8,8 +8,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
-    <AssemblyName>FluentLuaBridge</AssemblyName>
-    <RootNamespace>FluentLuaBridge</RootNamespace>
+    <AssemblyName>SteamLuaBridge</AssemblyName>
+    <RootNamespace>SteamLuaBridge</RootNamespace>
     <ApplicationIcon>..\Assets\app.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>

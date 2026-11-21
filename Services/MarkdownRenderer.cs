@@ -5,7 +5,7 @@ using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 // 极简 Markdown 渲染：只覆盖 release notes 里实际会出现的语法，不追求规范完整。
 // 输出 FlowDocument 交给 FlowDocumentScrollViewer 显示，让标题、粗体、代码、链接

@@ -4,7 +4,7 @@ using System.IO.Compression;
 using System.Net.Http;
 using System.Reflection;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 public sealed record StagedAppUpdate(string StagingDir, string TargetDir, string ExeName, string Version, bool IsLoose);
 
@@ -31,11 +31,11 @@ public class AppUpdateService : IAppUpdateService
 
     public static string InstallDir => AppDomain.CurrentDomain.BaseDirectory;
 
-    public static string ExeName => Path.GetFileName(Environment.ProcessPath ?? "SteamLuaManager.exe");
+    public static string ExeName => Path.GetFileName(Environment.ProcessPath ?? "SteamLua.exe");
 
     // 散文件版安装目录旁必有主 dll；单文件版（新旧命名）都没有
     private static bool IsLooseInstall() =>
-        File.Exists(Path.Combine(InstallDir, "SteamLuaManager.dll"));
+        File.Exists(Path.Combine(InstallDir, "SteamLua.dll"));
 
     public async Task<StagedAppUpdate> DownloadAndStageAsync(
         UpdateCheckResult check, IProgress<string>? status, IProgress<int>? progress, CancellationToken ct = default)
@@ -73,7 +73,7 @@ public class AppUpdateService : IAppUpdateService
                 ? L.Get("Svc_AusDownloading", GitHubMirror.SourceDisplayName(src))
                 : L.Get("Svc_AusRetrySource", GitHubMirror.SourceDisplayName(sources[i - 1]), GitHubMirror.SourceDisplayName(src)));
 
-            var tempZip = Path.Combine(Path.GetTempPath(), $"FluentSteamLuaUpdate_{Guid.NewGuid():N}.zip");
+            var tempZip = Path.Combine(Path.GetTempPath(), $"SteamLuaUpdate_{Guid.NewGuid():N}.zip");
             try
             {
                 using (var response = await _httpClientProvider.SendWithProxyRetryAsync(
@@ -175,13 +175,13 @@ public class AppUpdateService : IAppUpdateService
         try
         {
             // 每次释放全新的 Updater，与主程序版本同步
-            var updaterDir = Path.Combine(Path.GetTempPath(), "FluentSteamLuaUpdater");
+            var updaterDir = Path.Combine(Path.GetTempPath(), "SteamLuaUpdater");
             if (Directory.Exists(updaterDir))
                 Directory.Delete(updaterDir, recursive: true);
             Directory.CreateDirectory(updaterDir);
 
             var assembly = Assembly.GetExecutingAssembly();
-            using var stream = assembly.GetManifestResourceStream("SteamLuaManager.Resources.Updater.zip");
+            using var stream = assembly.GetManifestResourceStream("SteamLua.Resources.Updater.zip");
             if (stream == null)
             {
                 LogService.Warn(L.Get("LogCat_Update"), L.Get("Svc_AusUpdaterMissing"));
@@ -247,7 +247,7 @@ public class AppUpdateService : IAppUpdateService
             {
                 try { Directory.Delete(dir, recursive: true); } catch { }
             }
-            foreach (var file in Directory.GetFiles(Path.GetTempPath(), "FluentSteamLuaUpdate_*.zip"))
+            foreach (var file in Directory.GetFiles(Path.GetTempPath(), "SteamLuaUpdate_*.zip"))
             {
                 try { File.Delete(file); } catch { }
             }

@@ -3,8 +3,8 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Globalization;
 using System.Text.Json;
-using SteamLuaManager;
-using SteamLuaManager.Services;
+using SteamLua;
+using SteamLua.Services;
 
 // 独立更新器：主程序退出后接管文件替换，避免运行时文件锁定。
 // 参数: --pid <主进程id> --staging <新文件目录> --target <安装目录> --exe <主程序文件名> --version <新版本号>
@@ -40,7 +40,7 @@ if (!opts.TryGetValue("--pid", out var pidText) || !int.TryParse(pidText, out va
 // 日志封顶，避免无限增长
 try
 {
-    var logFile = new FileInfo(Path.Combine(Path.GetTempPath(), "FluentSteamLuaUpdater.log"));
+    var logFile = new FileInfo(Path.Combine(Path.GetTempPath(), "SteamLuaUpdater.log"));
     if (logFile.Exists && logFile.Length > 512 * 1024)
         logFile.Delete();
 }
@@ -383,7 +383,7 @@ static void Log(string message)
     try
     {
         File.AppendAllText(
-            Path.Combine(Path.GetTempPath(), "FluentSteamLuaUpdater.log"),
+            Path.Combine(Path.GetTempPath(), "SteamLuaUpdater.log"),
             $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}{Environment.NewLine}");
     }
     catch { }

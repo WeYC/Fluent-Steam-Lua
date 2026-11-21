@@ -9,7 +9,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 // 注入入口（二选一）：Dwmapi 反作弊友好（默认），Version 用于首载隔离
 public enum InjectionMode

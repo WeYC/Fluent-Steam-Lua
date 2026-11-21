@@ -4,9 +4,9 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using HtmlAgilityPack;
-using SteamLuaManager.Models;
+using SteamLua.Models;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 // OnlineFix 补丁数据源：online-fix.me（DLE 站，无 JSON 接口，全走 HTML 解析）。
 // 实测结论：搜索/文章页/目录索引均无需登录；文件下载必须同一会话先 GET 目录页再带 Referer 下文件；
