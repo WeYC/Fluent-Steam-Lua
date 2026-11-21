@@ -41,8 +41,8 @@ jobs:
           git fetch --tags --quiet
           if (git tag --list $version) { throw "tag $version 已存在，停止" }
           "VERSION=$version" >> $env:GITHUB_ENV
-          "LOOSE_ZIP=Fluent-Steam-Lua-$version-loose-file.zip" >> $env:GITHUB_ENV
-          "SINGLE_ZIP=Fluent-Steam-Lua-$version-single-file.zip" >> $env:GITHUB_ENV
+          "LOOSE_ZIP=SteamLua-$version-loose-file.zip" >> $env:GITHUB_ENV
+          "SINGLE_ZIP=SteamLua-$version-single-file.zip" >> $env:GITHUB_ENV
 
       - name: Bump csproj version and push
         shell: pwsh
@@ -70,7 +70,7 @@ jobs:
         run: dotnet publish SteamLuaManager.csproj -c Release -r win-x64 --self-contained false -p:DebugType=none -p:Version=${{ env.VERSION }} -o publish/loose
 
       - name: Publish single-file version
-        run: dotnet publish SteamLuaManager.csproj -c Release -r win-x64 --self-contained false -p:DebugType=none -p:AppExeName="Fluent Steam Lua" -p:PublishSingleFile=true -p:Version=${{ env.VERSION }} -o publish/single
+        run: dotnet publish SteamLuaManager.csproj -c Release -r win-x64 --self-contained false -p:DebugType=none -p:AppExeName="SteamLua" -p:PublishSingleFile=true -p:Version=${{ env.VERSION }} -o publish/single
 
       - name: Pack archives
         shell: pwsh
@@ -82,7 +82,7 @@ jobs:
       - name: Compose release notes
         shell: pwsh
         run: |
-          $header = '# Fluent Steam Lua 管理工具 ${{ env.VERSION }}'
+          $header = '# SteamLua ${{ env.VERSION }}'
           $footer = Get-Content .github/RELEASE_FOOTER.md -Raw -Encoding utf8NoBOM
           $footer = $footer.Replace('{LOOSE_ZIP}', $env:LOOSE_ZIP).Replace('{SINGLE_ZIP}', $env:SINGLE_ZIP)
           Set-Content release-notes.md -Value ($header + "`n`n" + $footer) -Encoding utf8NoBOM

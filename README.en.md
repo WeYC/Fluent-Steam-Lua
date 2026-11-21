@@ -1,4 +1,4 @@
-# Fluent Steam Lua Manager
+# SteamLua
 
 <p>
   <a href="README.md">
@@ -106,7 +106,7 @@ Prerequisites: [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0). T
 Publish as a single-file executable:
 
 ```cmd
-dotnet publish SteamLuaManager.csproj -c Release -r win-x64 --self-contained false -p:DebugType=none -p:AppExeName="Fluent Steam Lua" -p:PublishSingleFile=true -o publish/single
+dotnet publish SteamLuaManager.csproj -c Release -r win-x64 --self-contained false -p:DebugType=none -p:AppExeName="SteamLua" -p:PublishSingleFile=true -o publish/single
 ```
 
 Publish as loose files:

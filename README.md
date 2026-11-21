@@ -1,4 +1,4 @@
-# Fluent Steam Lua 管理工具
+# SteamLua
 
 <p>
   <a href="README.md">
@@ -109,7 +109,7 @@
 发布为单文件可执行程序：
 
 ```cmd
-dotnet publish SteamLuaManager.csproj -c Release -r win-x64 --self-contained false -p:DebugType=none -p:AppExeName="Fluent Steam Lua" -p:PublishSingleFile=true -o publish/single
+dotnet publish SteamLuaManager.csproj -c Release -r win-x64 --self-contained false -p:DebugType=none -p:AppExeName="SteamLua" -p:PublishSingleFile=true -o publish/single
 ```
 
 发布为散文件可执行程序：

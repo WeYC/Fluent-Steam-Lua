@@ -344,7 +344,7 @@ internal static class BridgeDiagnostics
         var message = $"桥接服务启动失败：端口 {BridgeConstants.Port} 可能已被占用。\n{detail}";
         try
         {
-            MessageBox.Show(message, "Fluent Steam Lua", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(message, "SteamLua", MessageBoxButton.OK, MessageBoxImage.Error);
         }
         catch
         {
