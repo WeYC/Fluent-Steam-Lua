@@ -106,7 +106,7 @@
                 <!-- Steam 快捷操作独立成页，排在设置上方 -->
                 <ui:NavigationViewItem x:Name="SteamItem" Content="{l:Loc Nav_Steam}" Tag="Steam" Padding="12,0">
                     <ui:NavigationViewItem.Icon>
-                        <ui:FontIcon Glyph="&#xE76E;" FontSize="16"/>
+                        <ui:FontIcon Glyph="&#xF2AE;" FontSize="16"/>
                     </ui:NavigationViewItem.Icon>
                 </ui:NavigationViewItem>
                 <ui:NavigationViewItem x:Name="SettingsItem" Content="{l:Loc Nav_Settings}" Tag="Settings" Padding="12,0">
