@@ -15,7 +15,7 @@
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
     <Title>SteamLua</Title>
     <Product>SteamLua</Product>
-    <Version>0.0.10</Version>
+    <Version>1.0.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
