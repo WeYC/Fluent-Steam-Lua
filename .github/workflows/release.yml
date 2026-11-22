@@ -18,6 +18,7 @@ jobs:
   release:
     runs-on: windows-latest
     env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
     steps:
       - uses: actions/checkout@v5
@@ -26,7 +27,7 @@ jobs:
 
       - uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 10.0.x
 
       - name: Validate version and tag
         shell: pwsh
@@ -41,7 +42,26 @@ jobs:
             throw "版本号格式非法，应为 x.y.z，可选 .w 或 -后缀（如 0.0.0.0、0.0.0-fix）；当前输入：$raw"
           }
           git fetch --tags --quiet
-          if (git tag --list $version) { throw "tag $version 已存在，停止" }
+
+          # tag 已存在不一定是重复发布：上次可能在建 tag 之后失败（如创建 Release 报错），
+          # 此时应允许续作，否则该版本永远发不出去。
+          if (git tag --list $version) {
+            $api = "https://api.github.com/repos/${{ github.repository }}/releases/tags/$version"
+            # 用内置 token 调 API：匿名访问容易 403 限流，被误判成"已发布"
+            $headers = @{ 'User-Agent' = 'SteamLua-CI'; 'Authorization' = "Bearer $($env:GITHUB_TOKEN)" }
+            $hasRelease = $false
+            try {
+              Invoke-RestMethod -Uri $api -Headers $headers -TimeoutSec 30 | Out-Null
+              $hasRelease = $true
+            } catch {
+              $code = $_.Exception.Response.StatusCode.value__
+              if ($code -ne 404) {
+                Write-Host "无法确认已有 Release（HTTP $code），按未发布处理并继续"
+              }
+            }
+            if ($hasRelease) { throw "版本 $version 已发布（tag 与 Release 均已存在），停止" }
+            Write-Host "tag $version 已存在但尚无 Release，视为上次中断，继续完成发布"
+          }
           "VERSION=$version" >> $env:GITHUB_ENV
 
       - name: Bump csproj version and push
@@ -71,14 +91,22 @@ jobs:
       - name: Create tag
         shell: pwsh
         run: |
-          git tag '${{ env.VERSION }}'
-          git push origin '${{ env.VERSION }}'
+          # tag 可能已在上一次中断的发布中创建，存在就跳过
+          if (git rev-parse -q --verify "refs/tags/${{ env.VERSION }}") {
+            Write-Host "tag ${{ env.VERSION }} 已存在，跳过创建"
+          } else {
+            git tag '${{ env.VERSION }}'
+            git push origin '${{ env.VERSION }}'
+          }
 
-      - name: Publish loose-file version
-        run: dotnet publish SteamLua.csproj -c Release -r win-x64 --self-contained false -p:DebugType=none -p:Version=${{ env.VERSION }} -o publish/loose
+      # 自包含发布：运行时随包内置，只出 x64
+      - name: Publish full version
+        shell: pwsh
+        run: dotnet publish SteamLua.csproj -c Release -r win-x64 --self-contained true -p:DebugType=none -p:Version=${{ env.VERSION }} -o publish/portable
 
-      - name: Publish single-file version
-        run: dotnet publish SteamLua.csproj -c Release -r win-x64 --self-contained false -p:DebugType=none -p:AppExeName="SteamLua" -p:PublishSingleFile=true -p:Version=${{ env.VERSION }} -o publish/single
+      - name: Publish portable version
+        shell: pwsh
+        run: dotnet publish SteamLua.csproj -c Release -r win-x64 --self-contained true -p:DebugType=none -p:AppExeName="SteamLua" -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:Version=${{ env.VERSION }} -o publish/single
 
       # windows-latest 未预装 Inno Setup，且官方安装包不含简体中文语言文件
       # （installer/SteamLua.iss 的 [Languages] 引用了它，缺文件会编译失败）
@@ -136,73 +164,72 @@ jobs:
           Write-Host "ISCC: $iscc"
           "ISCC=$iscc" >> $env:GITHUB_ENV
 
-      # 打包三件套，两个 zip 内部套一层版本目录
+      # 打包三件产物：portable zip、full zip、setup 安装程序。
+      # 两个 zip 内部套一层版本目录，解压得到干净文件夹。
       - name: Build packages
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           $Version = '${{ env.VERSION }}'
-          if ([string]::IsNullOrWhiteSpace($Version)) { throw 'VERSION 为空' }
+          if ([string]::IsNullOrWhiteSpace($Version)) { throw "VERSION 为空" }
+
           $OutputDir = 'publish/dist'
-          $looseSrc = 'publish/loose'
-          $singleSrc = 'publish/single'
-
-          foreach ($dir in @($looseSrc, $singleSrc)) {
-            if (-not (Test-Path $dir)) { throw "缺少发布目录：$dir（请先执行 dotnet publish）" }
-          }
-
-          # 结构守卫：主程序依赖必须与 exe 同级（deps.json 未声明 probing path），
-          # 且运行期数据不得混进发布包
-          foreach ($f in 'SteamLua.exe', 'SteamLua.dll', 'SteamLua.deps.json', 'SteamLua.runtimeconfig.json') {
-            if (-not (Test-Path "$looseSrc/$f")) { throw "缺少与 exe 同级的依赖：$f" }
-          }
-          foreach ($leak in 'settings.json', 'app.log', 'cache', 'bindings.json') {
-            if (Test-Path "$looseSrc/$leak") { throw "运行期数据不应出现在发布包：$leak" }
-          }
-
           New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
-          # Inno 的 OutputDir 若为相对路径会拼到 .iss 所在目录，统一转绝对路径
           $OutputDir = (Resolve-Path $OutputDir).Path
-          $looseZip = Join-Path $OutputDir "SteamLua-$Version-loose-file.zip"
-          $singleZip = Join-Path $OutputDir "SteamLua-$Version-single-file.zip"
-          $setupExe = Join-Path $OutputDir "SteamLua-$Version-setup.exe"
-          Remove-Item $looseZip, $singleZip, $setupExe -Force -ErrorAction SilentlyContinue
+
+          $iscc = $env:ISCC
+          if ([string]::IsNullOrWhiteSpace($iscc) -or -not (Test-Path $iscc)) { throw "未找到 ISCC.exe" }
+
+          $singleSrc = "publish/single"
+          $portableSrc = "publish/portable"
+          foreach ($dir in @($singleSrc, $portableSrc)) {
+            if (-not (Test-Path $dir)) { throw "缺少发布目录：$dir" }
+          }
+
+          # 结构守卫：运行期数据写到 %LocalAppData%，绝不能混进发布包
+          foreach ($src in @($singleSrc, $portableSrc)) {
+            foreach ($leak in 'settings.json', 'app.log', 'cache', 'bindings.json') {
+              if (Test-Path "$src/$leak") { throw "运行期数据不应出现在发布包：$src/$leak" }
+            }
+          }
+          if (-not (Test-Path "$singleSrc/SteamLua.exe")) { throw "缺少 $singleSrc/SteamLua.exe" }
+          if (-not (Test-Path "$portableSrc/SteamLua.exe")) { throw "缺少 $portableSrc/SteamLua.exe" }
+          $exeCount = (Get-ChildItem $singleSrc -Filter *.exe -File).Count
+          if ($exeCount -ne 1) { throw "单文件版应只有一个 exe，实际 $exeCount 个" }
 
           $stage = Join-Path $env:RUNNER_TEMP "pkg-$Version"
           Remove-Item $stage -Recurse -Force -ErrorAction SilentlyContinue
-          $looseRoot = Join-Path $stage "SteamLua-$Version"
-          $singleRoot = Join-Path $stage "SteamLua-$Version-single"
-          New-Item -ItemType Directory -Path $looseRoot -Force | Out-Null
+          $singleRoot = Join-Path $stage "SteamLua-$Version-portable"
+          $portableRoot = Join-Path $stage "SteamLua-$Version"
           New-Item -ItemType Directory -Path $singleRoot -Force | Out-Null
-          Copy-Item "$looseSrc/*" -Destination $looseRoot -Recurse
+          New-Item -ItemType Directory -Path $portableRoot -Force | Out-Null
           Copy-Item "$singleSrc/*" -Destination $singleRoot -Recurse
-          Compress-Archive -Path $looseRoot -DestinationPath $looseZip
-          Compress-Archive -Path $singleRoot -DestinationPath $singleZip
+          Copy-Item "$portableSrc/*" -Destination $portableRoot -Recurse
+          Compress-Archive -Path $singleRoot -DestinationPath (Join-Path $OutputDir "SteamLua-$Version-portable.zip")
+          Compress-Archive -Path $portableRoot -DestinationPath (Join-Path $OutputDir "SteamLua-$Version.zip")
 
-          $iscc = $env:ISCC
-          if ([string]::IsNullOrWhiteSpace($iscc) -or -not (Test-Path $iscc)) { throw '未找到 ISCC.exe' }
-          Write-Host "编译安装程序：$iscc"
-          & $iscc "/DMyAppVersion=$Version" "/DMySourceDir=$((Resolve-Path $looseSrc).Path)" "/DMyOutputDir=$OutputDir" 'installer/SteamLua.iss'
+          $setupOut = Join-Path $stage "setup"
+          New-Item -ItemType Directory -Path $setupOut -Force | Out-Null
+          & $iscc "/DMyAppVersion=$Version" "/DMySourceDir=$((Resolve-Path $portableSrc).Path)" "/DMyOutputDir=$setupOut" 'installer/SteamLua.iss'
           if ($LASTEXITCODE -ne 0) { throw "安装程序编译失败，退出码 $LASTEXITCODE" }
+          $built = Get-ChildItem $setupOut -Filter *.exe -File | Select-Object -First 1
+          if (-not $built) { throw "安装程序未产出 exe" }
+          Copy-Item $built.FullName (Join-Path $OutputDir $built.Name)
 
-          Get-ChildItem $OutputDir | Select-Object Name, @{N = 'MB'; E = { [math]::Round($_.Length / 1MB, 2) } }
-
-          "LOOSE_ZIP=$looseZip" >> $env:GITHUB_ENV
-          "SINGLE_ZIP=$singleZip" >> $env:GITHUB_ENV
-          "SETUP_EXE=$setupExe" >> $env:GITHUB_ENV
+          Get-ChildItem $OutputDir | Sort-Object Name | Select-Object Name, @{N = 'MB'; E = { [math]::Round($_.Length / 1MB, 2) } }
 
       - name: Compose release notes
         shell: pwsh
         run: |
           $header = '# SteamLua ${{ env.VERSION }}'
-          # 占位符替换成实际文件名（Release 附件里文件名即下载链接文字）
-          $looseName = Split-Path $env:LOOSE_ZIP -Leaf
-          $singleName = Split-Path $env:SINGLE_ZIP -Leaf
-          $setupName = Split-Path $env:SETUP_EXE -Leaf
+          $v = $env:VERSION
+          $map = [ordered]@{
+            '{SETUP}'    = "SteamLua-$v-setup.exe"
+            '{PORTABLE}' = "SteamLua-$v-portable.zip"
+            '{FULL}'     = "SteamLua-$v.zip"
+          }
           $footer = Get-Content .github/RELEASE_FOOTER.md -Raw -Encoding utf8NoBOM
-          $footer = $footer.Replace('{LOOSE_ZIP}', $looseName)
-          $footer = $footer.Replace('{SINGLE_ZIP}', $singleName)
-          $footer = $footer.Replace('{SETUP_EXE}', $setupName)
+          foreach ($k in $map.Keys) { $footer = $footer.Replace($k, $map[$k]) }
           Set-Content release-notes.md -Value ($header + "`n`n" + $footer) -Encoding utf8NoBOM
           Get-Content release-notes.md -Encoding utf8NoBOM
 
@@ -214,7 +241,7 @@ jobs:
           body_path: release-notes.md
           prerelease: ${{ inputs.prerelease }}
           fail_on_unmatched_files: true
+          # 只有三个产物，直接传整个目录
+          # 注意：注释不能写在 files: | 的块内容里，否则会被当成文件模式去匹配。
           files: |
-            ${{ env.LOOSE_ZIP }}
-            ${{ env.SINGLE_ZIP }}
-            ${{ env.SETUP_EXE }}
+            publish/dist/*

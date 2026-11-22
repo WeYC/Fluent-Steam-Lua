@@ -1028,9 +1028,11 @@ public sealed class CloudProviderStore
         }
         else if (!string.IsNullOrEmpty(caCertPath) && File.Exists(caCertPath))
         {
-            // 自建存储的私有 CA：链验证时追加该证书，不过则拒绝
+            // 自建存储的私有 CA：链验证时追加该证书，不过则拒绝。
+            // 用 X509CertificateLoader 而非构造函数：后者自 .NET 9 起已过时。
+            // 读取失败时 ca 保持 null，回调里会走"拒绝"分支，与原先行为一致。
             X509Certificate2? ca = null;
-            try { ca = new X509Certificate2(caCertPath); } catch { }
+            try { ca = X509CertificateLoader.LoadCertificateFromFile(caCertPath); } catch { }
             handler.ServerCertificateCustomValidationCallback = (_, cert, chain, errors) =>
             {
                 if (errors == System.Net.Security.SslPolicyErrors.None) return true;

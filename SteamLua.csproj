@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows</TargetFramework>
     <TargetPlatformVersion>10.0.18362.0</TargetPlatformVersion>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -15,7 +15,7 @@
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
     <Title>SteamLua</Title>
     <Product>SteamLua</Product>
-    <Version>0.0.3</Version>
+    <Version>0.0.10</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -105,19 +105,27 @@
   <!-- 原生劫持 DLL 由 Core 工程自带 None 规则跟随输出（SteamAPICheckBypass\ 子目录，
        正是 Core 按 NATIVE_DLL_SEARCH_DIRECTORIES 查找的位置），无需额外拷贝 -->
 
+  <!-- 子进程运行时架构必须与主程序一致：
+       Bridge / SvcMonitor / Updater 都是独立进程，x86 主程序启动 x64 子进程会失败。
+       未指定 RuntimeIdentifier 时按 x64 处理（默认构建场景）。 -->
+  <PropertyGroup>
+    <EmbedRid Condition="'$(RuntimeIdentifier)' != ''">$(RuntimeIdentifier)</EmbedRid>
+    <EmbedRid Condition="'$(EmbedRid)' == ''">win-x64</EmbedRid>
+  </PropertyGroup>
+
   <!-- 内嵌更新器与源码同步：每次构建自动重新打包，避免改了 Updater 源码却发出去旧版 -->
   <Target Name="BuildUpdaterForEmbed" BeforeTargets="BeforeBuild">
-    <Exec Command="dotnet publish $(ProjectDir)Updater\Updater.csproj -c $(Configuration) -o $(ProjectDir)Resources\UpdaterPublish" />
-    <ZipDirectory SourceDirectory="$(ProjectDir)Resources\UpdaterPublish" DestinationFile="$(ProjectDir)Resources\Updater.zip" Overwrite="true" />
-    <RemoveDir Directories="$(ProjectDir)Resources\UpdaterPublish" />
+    <Exec Command="dotnet publish $(ProjectDir)Updater\Updater.csproj -c $(Configuration) -r $(EmbedRid) --self-contained true -p:DebugType=none -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o $(ProjectDir)Resources\UpdaterPublish-$(EmbedRid)" />
+    <ZipDirectory SourceDirectory="$(ProjectDir)Resources\UpdaterPublish-$(EmbedRid)" DestinationFile="$(ProjectDir)Resources\Updater.zip" Overwrite="true" />
+    <RemoveDir Directories="$(ProjectDir)Resources\UpdaterPublish-$(EmbedRid)" />
   </Target>
 
   <Target Name="BuildSvcMonitorForEmbed" BeforeTargets="BeforeBuild">
-    <Exec Command="dotnet publish $(ProjectDir)SvcMonitor\SvcMonitor.csproj -c $(Configuration) -o $(ProjectDir)Resources\SvcMonitorPublish" />
-    <ZipDirectory SourceDirectory="$(ProjectDir)Resources\SvcMonitorPublish"
+    <Exec Command="dotnet publish $(ProjectDir)SvcMonitor\SvcMonitor.csproj -c $(Configuration) -r $(EmbedRid) --self-contained true -p:DebugType=none -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o $(ProjectDir)Resources\SvcMonitorPublish-$(EmbedRid)" />
+    <ZipDirectory SourceDirectory="$(ProjectDir)Resources\SvcMonitorPublish-$(EmbedRid)"
                   DestinationFile="$(ProjectDir)Resources\SvcMonitor.zip"
                   Overwrite="true" />
-    <RemoveDir Directories="$(ProjectDir)Resources\SvcMonitorPublish" />
+    <RemoveDir Directories="$(ProjectDir)Resources\SvcMonitorPublish-$(EmbedRid)" />
   </Target>
 
   <!-- 商店页一键入库的桥接进程与浏览器扩展：同样随主程序一起打包内嵌，
@@ -126,13 +134,15 @@
     <ItemGroup>
       <BridgePublishFiles Include="$(ProjectDir)extension\**\*" />
     </ItemGroup>
-    <Exec Command="dotnet publish $(ProjectDir)Bridge\Bridge.csproj -c $(Configuration) -r win-x64 --self-contained false -p:DebugType=none -o $(ProjectDir)Resources\BridgePublish" />
+    <!-- 桥接需按文件部署（代码按 SteamLuaBridge.exe/.dll 判断是否就绪并读版本），
+         因此不能打成单文件；但必须自包含，否则未装 .NET 的机器上桥接起不来 -->
+    <Exec Command="dotnet publish $(ProjectDir)Bridge\Bridge.csproj -c $(Configuration) -r $(EmbedRid) --self-contained true -p:DebugType=none -o $(ProjectDir)Resources\BridgePublish-$(EmbedRid)" />
     <Copy SourceFiles="@(BridgePublishFiles)"
-          DestinationFiles="@(BridgePublishFiles->'$(ProjectDir)Resources\BridgePublish\extension\%(RecursiveDir)%(Filename)%(Extension)')" />
-    <ZipDirectory SourceDirectory="$(ProjectDir)Resources\BridgePublish"
+          DestinationFiles="@(BridgePublishFiles->'$(ProjectDir)Resources\BridgePublish-$(EmbedRid)\extension\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <ZipDirectory SourceDirectory="$(ProjectDir)Resources\BridgePublish-$(EmbedRid)"
                   DestinationFile="$(ProjectDir)Resources\Bridge.zip"
                   Overwrite="true" />
-    <RemoveDir Directories="$(ProjectDir)Resources\BridgePublish" />
+    <RemoveDir Directories="$(ProjectDir)Resources\BridgePublish-$(EmbedRid)" />
   </Target>
 
   <!-- 构建时拉取官方 Release 成品并验签：纯内联任务，不依赖外部脚本与 C++ 工具链 -->
@@ -357,6 +367,9 @@
       <Output TaskParameter="DllPath" PropertyName="CloudRedirectDllPath" />
       <Output TaskParameter="ResolvedVersion" PropertyName="CloudRedirectResolvedVersion" />
     </FetchCloudRedirectDll>
+    <!-- 显式建目录：增量/并行构建下目标目录可能被上一次的 RemoveDir 清掉，
+         直接 Copy 会报 MSB3941 -->
+    <MakeDir Directories="$(ProjectDir)Resources\CloudRedirectDllPublish" />
     <Copy SourceFiles="$(CloudRedirectDllPath)" DestinationFolder="$(ProjectDir)Resources\CloudRedirectDllPublish" />
     <ZipDirectory SourceDirectory="$(ProjectDir)Resources\CloudRedirectDllPublish"
                   DestinationFile="$(ProjectDir)Resources\CloudRedirectDll.zip"

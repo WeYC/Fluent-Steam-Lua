@@ -46,7 +46,17 @@ public static class AppInfoVdf
                 return new List<AppEntry>(_cachedEntries);
         }
 
-        var result = ParseUncached(path);
+        List<AppEntry> result;
+        try
+        {
+            result = ParseUncached(path);
+        }
+        catch
+        {
+            // appinfo.vdf 是 Steam 自己维护的缓存，随时可能被它改写或截断。
+            // 解析中途发现数据不完整时返回空结果，不要因为读不到缓存就让调用方失败。
+            result = new List<AppEntry>();
+        }
         lock (_cacheLock)
         {
             _cachedPath = path;
@@ -253,30 +263,30 @@ public static class AppInfoVdf
 
     private static uint ReadU32(Stream s)
     {
-        var data = new byte[4];
-        s.Read(data, 0, 4);
-        return BitConverter.ToUInt32(data, 0);
+        Span<byte> data = stackalloc byte[4];
+        s.ReadExactly(data);
+        return BitConverter.ToUInt32(data);
     }
 
     private static long ReadI64(Stream s)
     {
-        var data = new byte[8];
-        s.Read(data, 0, 8);
-        return BitConverter.ToInt64(data, 0);
+        Span<byte> data = stackalloc byte[8];
+        s.ReadExactly(data);
+        return BitConverter.ToInt64(data);
     }
 
     private static ulong ReadU64(Stream s)
     {
-        var data = new byte[8];
-        s.Read(data, 0, 8);
-        return BitConverter.ToUInt64(data, 0);
+        Span<byte> data = stackalloc byte[8];
+        s.ReadExactly(data);
+        return BitConverter.ToUInt64(data);
     }
 
     private static float ReadF32(Stream s)
     {
-        var data = new byte[4];
-        s.Read(data, 0, 4);
-        return BitConverter.ToSingle(data, 0);
+        Span<byte> data = stackalloc byte[4];
+        s.ReadExactly(data);
+        return BitConverter.ToSingle(data);
     }
 
     private static byte[] ReadBytes(Stream s, long count)

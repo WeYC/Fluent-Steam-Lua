@@ -20,7 +20,7 @@ jobs:
 
       - uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 10.0.x
 
       # 读出版本号，供后续产物命名使用
       - name: Read version
@@ -33,11 +33,16 @@ jobs:
           "value=$($m.Groups[1].Value)" >> $env:GITHUB_OUTPUT
           Write-Host "版本: $($m.Groups[1].Value)"
 
-      - name: Publish loose-file version
-        run: dotnet publish SteamLua.csproj -c Release -r win-x64 --self-contained false -p:DebugType=none -o publish/loose
+      # 自包含发布：运行时随包内置，用户无需安装 .NET。
+      # 只出 x64：子进程（Bridge/SvcMonitor/Updater）按 RuntimeIdentifier
+      # 一并构建成同架构。
+      - name: Publish full version
+        shell: pwsh
+        run: dotnet publish SteamLua.csproj -c Release -r win-x64 --self-contained true -p:DebugType=none -o publish/portable
 
-      - name: Publish single-file version
-        run: dotnet publish SteamLua.csproj -c Release -r win-x64 --self-contained false -p:DebugType=none -p:AppExeName="SteamLua" -p:PublishSingleFile=true -o publish/single
+      - name: Publish portable version
+        shell: pwsh
+        run: dotnet publish SteamLua.csproj -c Release -r win-x64 --self-contained true -p:DebugType=none -p:AppExeName="SteamLua" -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o publish/single
 
       # windows-latest 未预装 Inno Setup，且官方安装包不含简体中文语言文件
       # （installer/SteamLua.iss 的 [Languages] 引用了它，缺文件会编译失败）
@@ -97,86 +102,79 @@ jobs:
           Write-Host "ISCC: $iscc"
           "ISCC=$iscc" >> $env:GITHUB_ENV
 
-      # 打包三件套：散文件 zip、单文件 zip、安装程序。
+      # 打包三件产物：portable zip、full zip、setup 安装程序。
       # 两个 zip 内部套一层版本目录，解压得到干净文件夹而非散落一堆文件。
       - name: Build packages
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           $Version = '${{ steps.version.outputs.value }}'
-          if ([string]::IsNullOrWhiteSpace($Version)) {
-            throw '版本号为空：上一步 Read version 未产出 value'
-          }
-          # 版本号会进入文件名与 Inno 的 VersionInfoVersion，先校验格式
-          if ($Version -notmatch '^\d+\.\d+\.\d+') {
-            throw "版本号格式非法：$Version"
-          }
+          if ([string]::IsNullOrWhiteSpace($Version)) { throw "版本号为空" }
+          if ($Version -notmatch '^\d+\.\d+\.\d+') { throw "版本号格式非法：$Version" }
+
           $OutputDir = 'publish/dist'
-          $looseSrc = 'publish/loose'
-          $singleSrc = 'publish/single'
-
-          foreach ($dir in @($looseSrc, $singleSrc)) {
-            if (-not (Test-Path $dir)) { throw "缺少发布目录：$dir（请先执行 dotnet publish）" }
-          }
-
-          # 结构守卫：主程序依赖必须与 exe 同级。
-          # deps.json 未声明 probing path，DLL 挪进子目录会直接启动失败。
-          foreach ($f in 'SteamLua.exe', 'SteamLua.dll', 'SteamLua.deps.json', 'SteamLua.runtimeconfig.json') {
-            if (-not (Test-Path "$looseSrc/$f")) { throw "缺少与 exe 同级的依赖：$f" }
-          }
-          # 运行期数据写到 %LocalAppData%，绝不能混进发布包
-          foreach ($leak in 'settings.json', 'app.log', 'cache', 'bindings.json') {
-            if (Test-Path "$looseSrc/$leak") { throw "运行期数据不应出现在发布包：$leak" }
-          }
-
           New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
-          # Inno 的 OutputDir 若为相对路径会拼到 .iss 所在目录，统一转绝对路径
           $OutputDir = (Resolve-Path $OutputDir).Path
-          $looseZip = Join-Path $OutputDir "SteamLua-$Version-loose-file.zip"
-          $singleZip = Join-Path $OutputDir "SteamLua-$Version-single-file.zip"
-          $setupExe = Join-Path $OutputDir "SteamLua-$Version-setup.exe"
-          Remove-Item $looseZip, $singleZip, $setupExe -Force -ErrorAction SilentlyContinue
+
+          $iscc = $env:ISCC
+          if ([string]::IsNullOrWhiteSpace($iscc) -or -not (Test-Path $iscc)) { throw "未找到 ISCC.exe" }
+
+          $singleSrc = "publish/single"
+          $portableSrc = "publish/portable"
+          foreach ($dir in @($singleSrc, $portableSrc)) {
+            if (-not (Test-Path $dir)) { throw "缺少发布目录：$dir" }
+          }
+
+          # 结构守卫：运行期数据写到 %LocalAppData%，绝不能混进发布包
+          foreach ($src in @($singleSrc, $portableSrc)) {
+            foreach ($leak in 'settings.json', 'app.log', 'cache', 'bindings.json') {
+              if (Test-Path "$src/$leak") { throw "运行期数据不应出现在发布包：$src/$leak" }
+            }
+          }
+          if (-not (Test-Path "$singleSrc/SteamLua.exe")) { throw "缺少 $singleSrc/SteamLua.exe" }
+          if (-not (Test-Path "$portableSrc/SteamLua.exe")) { throw "缺少 $portableSrc/SteamLua.exe" }
+          $exeCount = (Get-ChildItem $singleSrc -Filter *.exe -File).Count
+          if ($exeCount -ne 1) { throw "单文件版应只有一个 exe，实际 $exeCount 个" }
 
           $stage = Join-Path $env:RUNNER_TEMP "pkg-$Version"
           Remove-Item $stage -Recurse -Force -ErrorAction SilentlyContinue
-          $looseRoot = Join-Path $stage "SteamLua-$Version"
-          $singleRoot = Join-Path $stage "SteamLua-$Version-single"
-          New-Item -ItemType Directory -Path $looseRoot -Force | Out-Null
+          $singleRoot = Join-Path $stage "SteamLua-$Version-portable"
+          $portableRoot = Join-Path $stage "SteamLua-$Version"
           New-Item -ItemType Directory -Path $singleRoot -Force | Out-Null
-          Copy-Item "$looseSrc/*" -Destination $looseRoot -Recurse
+          New-Item -ItemType Directory -Path $portableRoot -Force | Out-Null
           Copy-Item "$singleSrc/*" -Destination $singleRoot -Recurse
-          Compress-Archive -Path $looseRoot -DestinationPath $looseZip
-          Compress-Archive -Path $singleRoot -DestinationPath $singleZip
+          Copy-Item "$portableSrc/*" -Destination $portableRoot -Recurse
+          Compress-Archive -Path $singleRoot -DestinationPath (Join-Path $OutputDir "SteamLua-$Version-portable.zip")
+          Compress-Archive -Path $portableRoot -DestinationPath (Join-Path $OutputDir "SteamLua-$Version.zip")
 
-          $iscc = $env:ISCC
-          if ([string]::IsNullOrWhiteSpace($iscc) -or -not (Test-Path $iscc)) { throw '未找到 ISCC.exe' }
-          Write-Host "编译安装程序：$iscc"
-          & $iscc "/DMyAppVersion=$Version" "/DMySourceDir=$((Resolve-Path $looseSrc).Path)" "/DMyOutputDir=$OutputDir" 'installer/SteamLua.iss'
+          $setupOut = Join-Path $stage "setup"
+          New-Item -ItemType Directory -Path $setupOut -Force | Out-Null
+          & $iscc "/DMyAppVersion=$Version" "/DMySourceDir=$((Resolve-Path $portableSrc).Path)" "/DMyOutputDir=$setupOut" 'installer/SteamLua.iss'
           if ($LASTEXITCODE -ne 0) { throw "安装程序编译失败，退出码 $LASTEXITCODE" }
+          $built = Get-ChildItem $setupOut -Filter *.exe -File | Select-Object -First 1
+          if (-not $built) { throw "安装程序未产出 exe" }
+          Copy-Item $built.FullName (Join-Path $OutputDir $built.Name)
 
-          Get-ChildItem $OutputDir | Select-Object Name, @{N = 'MB'; E = { [math]::Round($_.Length / 1MB, 2) } }
+          Get-ChildItem $OutputDir | Sort-Object Name | Select-Object Name, @{N = 'MB'; E = { [math]::Round($_.Length / 1MB, 2) } }
 
-          "LOOSE_ZIP=$looseZip" >> $env:GITHUB_ENV
-          "SINGLE_ZIP=$singleZip" >> $env:GITHUB_ENV
-          "SETUP_EXE=$setupExe" >> $env:GITHUB_ENV
-
-      - name: Upload loose-file artifact
+      # 上传三个产物
+      - name: Upload portable
         uses: actions/upload-artifact@v5
         with:
-          name: SteamLua-${{ steps.version.outputs.value }}-loose-file
-          path: ${{ env.LOOSE_ZIP }}
+          name: SteamLua-${{ steps.version.outputs.value }}-portable
+          path: publish/dist/SteamLua-${{ steps.version.outputs.value }}-portable.zip
           retention-days: 7
 
-      - name: Upload single-file artifact
+      - name: Upload full
         uses: actions/upload-artifact@v5
         with:
-          name: SteamLua-${{ steps.version.outputs.value }}-single-file
-          path: ${{ env.SINGLE_ZIP }}
+          name: SteamLua-${{ steps.version.outputs.value }}
+          path: publish/dist/SteamLua-${{ steps.version.outputs.value }}.zip
           retention-days: 7
 
-      - name: Upload installer artifact
+      - name: Upload installer
         uses: actions/upload-artifact@v5
         with:
           name: SteamLua-${{ steps.version.outputs.value }}-setup
-          path: ${{ env.SETUP_EXE }}
+          path: publish/dist/SteamLua-${{ steps.version.outputs.value }}-setup.exe
           retention-days: 7
