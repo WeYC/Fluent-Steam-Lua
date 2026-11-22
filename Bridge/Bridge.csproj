@@ -8,13 +8,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
-    <AssemblyName>FluentLuaBridge</AssemblyName>
-    <RootNamespace>FluentLuaBridge</RootNamespace>
+    <AssemblyName>SteamLuaBridge</AssemblyName>
+    <RootNamespace>SteamLuaBridge</RootNamespace>
     <ApplicationIcon>..\Assets\app.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
-    <AssemblyTitle>Fluent Steam Lua 商店页入库桥接服务</AssemblyTitle>
-    <Product>Fluent Steam Lua 管理工具</Product>
+    <AssemblyTitle>SteamLua 商店页入库桥接服务</AssemblyTitle>
+    <Product>SteamLua</Product>
     <!-- 桥接与浏览器扩展共用同一个组件版本：两者必须成对部署，
          版本号统一才能在启动时只做一次比对就判断整套组件是否需要更新 -->
     <Version>1.0.0</Version>
@@ -43,6 +43,7 @@
     <Compile Include="..\Services\SettingsService.cs" Link="Linked\SettingsService.cs" />
     <Compile Include="..\Services\ISteamAppInfoService.cs" Link="Linked\ISteamAppInfoService.cs" />
     <Compile Include="..\Services\VdfParser.cs" Link="Linked\VdfParser.cs" />
+    <Compile Include="..\Services\AppDataPaths.cs" Link="Linked\AppDataPaths.cs" />
     <Compile Include="..\Services\LogService.cs" Link="Linked\LogService.cs" />
     <Compile Include="..\Services\LocalizationService.cs" Link="Linked\LocalizationService.cs" />
     <Compile Include="..\Services\L.cs" Link="Linked\L.cs" />

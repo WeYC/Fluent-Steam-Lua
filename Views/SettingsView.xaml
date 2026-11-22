@@ -1,7 +1,7 @@
-<UserControl xmlns:controls="clr-namespace:SteamLuaManager.Controls" x:Class="SteamLuaManager.Views.SettingsView"
+<UserControl xmlns:controls="clr-namespace:SteamLua.Controls" x:Class="SteamLua.Views.SettingsView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:l="clr-namespace:SteamLuaManager.Markup"
+        xmlns:l="clr-namespace:SteamLua.Markup"
         xmlns:ui="http://schemas.inkore.net/lib/ui/wpf/modern"
         Background="Transparent"
         TextOptions.TextFormattingMode="Display"
@@ -257,13 +257,6 @@ Style="{StaticResource SettingsCardStyle}">
                               </ComboBox>
                         </ui:SettingsCard>
 
-                        <ui:SettingsCard Header="{l:Loc Settings_Fab}" Margin="0,0,0,8"
-                                         Description="{l:Loc Settings_FabDesc}"
-Style="{StaticResource SettingsCardStyle}">
-                            <ui:ToggleSwitch IsOn="{Binding IsFabVisible}"
-                                             OnContent="{l:Loc Common_On}" OffContent="{l:Loc Common_Off}"/>
-                        </ui:SettingsCard>
-
                         <ui:SettingsCard Header="{l:Loc Settings_CardRefresh}" Margin="0,0,0,8"
                                          Description="{l:Loc Settings_CardRefreshDesc}"
 Style="{StaticResource SettingsCardStyle}">
@@ -351,7 +344,6 @@ Style="{StaticResource SettingsCardStyle}">
                                         </ComboBox.Background>
                                         <ComboBoxItem Content="{l:Loc Common_DirectDefault}" Tag="direct"/>
                                         <ComboBoxItem Content="gh-proxy.com" Tag="gh-proxy.com"/>
-                                        <ComboBoxItem Content="ghfast.top" Tag="ghfast.top"/>
                                         <ComboBoxItem Content="gh-proxy.org" Tag="gh-proxy.org"/>
                                     </ComboBox>
                                 </StackPanel>

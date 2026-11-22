@@ -7,7 +7,7 @@ using System.Linq;
 using System.Security.Authentication;
 using Microsoft.Win32;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 public interface IHttpClientProvider
 {

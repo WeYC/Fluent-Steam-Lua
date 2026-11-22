@@ -5,7 +5,7 @@ using SharpCompress.Archives;
 using SharpCompress.Common;
 using SharpCompress.Readers;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 public sealed record ArchiveImportResult(
     int LuaCount,
@@ -47,7 +47,7 @@ public class ArchiveImportService : IArchiveImportService
         if (!IsArchive(archivePath))
             throw new InvalidOperationException(L.Get("Svc_ArchBadFormat"));
 
-        var workDir = Path.Combine(Path.GetTempPath(), "SteamLuaManager", "archive_" + Guid.NewGuid().ToString("N"));
+        var workDir = Path.Combine(Path.GetTempPath(), "SteamLua", "archive_" + Guid.NewGuid().ToString("N"));
         var extracted = new List<string>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var skipped = new List<string>();
@@ -189,7 +189,7 @@ public class ArchiveImportService : IArchiveImportService
 
     private static IEnumerable<Entry> ExtractSevenZipFlat(string path, DisposableList streams)
     {
-        var stageDir = Path.Combine(Path.GetTempPath(), "SteamLuaManager", "stage_" + Guid.NewGuid().ToString("N"));
+        var stageDir = Path.Combine(Path.GetTempPath(), "SteamLua", "stage_" + Guid.NewGuid().ToString("N"));
         try
         {
             Directory.CreateDirectory(stageDir);

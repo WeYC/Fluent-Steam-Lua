@@ -3,7 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Animation;
 
-namespace SteamLuaManager.Controls;
+namespace SteamLua.Controls;
 
 /// <summary>
 /// 平滑滚动 ScrollViewer：滚轮滚动以缓动动画过渡到目标位置，替代默认的逐档跳变。

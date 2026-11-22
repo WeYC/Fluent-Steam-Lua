@@ -3,10 +3,10 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using SteamLuaManager.Services;
-using SteamLuaManager.ViewModels;
+using SteamLua.Services;
+using SteamLua.ViewModels;
 
-namespace SteamLuaManager.Views;
+namespace SteamLua.Views;
 
 public partial class ExtractionView : UserControl
 {

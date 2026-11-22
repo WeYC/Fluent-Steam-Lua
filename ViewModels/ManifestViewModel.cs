@@ -1,9 +1,9 @@
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using SteamLuaManager.Services;
+using SteamLua.Services;
 
-namespace SteamLuaManager.ViewModels;
+namespace SteamLua.ViewModels;
 
 public partial class ManifestViewModel : ObservableObject
 {

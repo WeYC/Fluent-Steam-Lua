@@ -4,9 +4,9 @@ using System.IO;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using SteamLuaManager.Services;
+using SteamLua.Services;
 
-namespace SteamLuaManager.ViewModels;
+namespace SteamLua.ViewModels;
 
 // 免启动页：一键破解（脱壳+部署emu）/ 还原 / 更新emu；仅 SteamStub 游戏有效，Denuvo 无效
 public partial class CrackToolViewModel : ObservableObject, IDisposable

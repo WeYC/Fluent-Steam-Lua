@@ -11,7 +11,7 @@ using W = System.Windows;
 using S = System.Windows.Shapes;
 using T = System.Windows.Thickness;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 /// <summary>系统托盘图标管理器：WPF Popup 全自绘圆角菜单（参考 FlClash 托盘自绘方案）。</summary>
 public sealed class TrayIconManager : IDisposable
@@ -117,11 +117,11 @@ public sealed class TrayIconManager : IDisposable
     private void OnMouseUp(object? sender, MouseEventArgs e)
     {
         if (e.Button == MouseButtons.Right)
-            ShowFluentMenu();
+            ShowTrayMenu();
     }
 
     /// <summary>在鼠标点击位置弹出自绘圆角菜单。</summary>
-    private void ShowFluentMenu()
+    private void ShowTrayMenu()
     {
         var app = W.Application.Current;
         if (app == null) return;

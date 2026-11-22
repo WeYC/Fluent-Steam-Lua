@@ -8,11 +8,11 @@ using iNKORE.UI.WPF.Modern.Controls;
 using iNKORE.UI.WPF.Modern.Controls.Helpers;
 using iNKORE.UI.WPF.Modern.Helpers.Styles;
 using Microsoft.Win32;
-using SteamLuaManager.Models;
-using SteamLuaManager.Services;
-using SteamLuaManager.ViewModels;
+using SteamLua.Models;
+using SteamLua.Services;
+using SteamLua.ViewModels;
 
-namespace SteamLuaManager.Views;
+namespace SteamLua.Views;
 
 public class CheatOptionItem
 {
@@ -170,7 +170,7 @@ public class TrainerBindingDialog : Window
         grid.Children.Add(titleBlock);
 
         // Form
-        var formScroll = new SteamLuaManager.Controls.SmoothScrollViewer { VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
+        var formScroll = new SteamLua.Controls.SmoothScrollViewer { VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
         var formPanel = new StackPanel { Margin = new Thickness(0, 0, 6, 0) };
 
         // --- Trainer selector ---

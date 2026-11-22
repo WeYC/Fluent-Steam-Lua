@@ -6,9 +6,9 @@ using iNKORE.UI.WPF.Modern;
 using iNKORE.UI.WPF.Modern.Controls.Helpers;
 using iNKORE.UI.WPF.Modern.Helpers.Styles;
 using SteamKit2.Authentication;
-using SteamLuaManager.Services;
+using SteamLua.Services;
 
-namespace SteamLuaManager.Views;
+namespace SteamLua.Views;
 
 // 独立登录窗口：本地凭证一键登录，或账号密码（2FA 在窗内完成）。
 // 成功后 DialogResult = true，调用方直接读 ISteamAccountService 的会话状态。

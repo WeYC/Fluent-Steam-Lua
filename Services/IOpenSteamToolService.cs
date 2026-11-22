@@ -9,7 +9,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 // 注入入口（二选一）：Dwmapi 反作弊友好（默认），Version 用于首载隔离
 public enum InjectionMode
@@ -192,11 +192,35 @@ public class OpenSteamToolService : IOpenSteamToolService
 
     public async Task<KernelRemoteInfo> GetRemoteInfoAsync()
     {
-        var json = await _httpClientProvider.SendWithProxyRetryAsync(
-            "open-steam-tool",
-            TimeSpan.FromSeconds(120),
-            client => client.GetStringAsync(GitHubLatestUrl),
-            HttpHeaderHelper.ConfigureApp);
+        // 同样走镜像：上游仓库在 GitHub，国内直连 api 常失败会让内核"检查不到更新"
+        string? preferredHost = null;
+        try { preferredHost = _settingsService.Load().ManifestMirror; } catch { }
+
+        var sources = GitHubMirror.ApiMirrors(GitHubLatestUrl, preferredHost);
+        string? json = null;
+        Exception? lastError = null;
+        for (var i = 0; i < sources.Count; i++)
+        {
+            try
+            {
+                json = await _httpClientProvider.SendWithProxyRetryAsync(
+                    "open-steam-tool",
+                    TimeSpan.FromSeconds(120),
+                    client => client.GetStringAsync(sources[i]),
+                    HttpHeaderHelper.ConfigureApp);
+                break;
+            }
+            catch (Exception ex)
+            {
+                lastError = ex;
+                if (i < sources.Count - 1)
+                    LogService.Warn(L.Get("LogCat_Kernel"),
+                        L.Get("Svc_UpdSourceFailed", GitHubMirror.SourceDisplayName(sources[i]), ex.Message));
+            }
+        }
+        if (json == null)
+            throw lastError ?? new InvalidOperationException(L.Get("Svc_UpdNoSource"));
+
         using var doc = JsonDocument.Parse(json);
         var tag = doc.RootElement.GetProperty("tag_name").GetString() ?? "0.0.0";
         var releaseUrl = doc.RootElement.TryGetProperty("html_url", out var htmlUrl)

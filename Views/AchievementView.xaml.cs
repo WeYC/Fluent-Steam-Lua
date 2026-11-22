@@ -5,12 +5,12 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using iNKORE.UI.WPF.Modern.Controls;
-using SteamLuaManager.Controls;
-using SteamLuaManager.Models;
-using SteamLuaManager.Services;
-using SteamLuaManager.ViewModels;
+using SteamLua.Controls;
+using SteamLua.Models;
+using SteamLua.Services;
+using SteamLua.ViewModels;
 
-namespace SteamLuaManager.Views;
+namespace SteamLua.Views;
 
 public partial class AchievementView : UserControl
 {

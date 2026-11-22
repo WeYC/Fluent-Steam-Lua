@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.IO;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 // Steam 进程启停：主窗口浮动菜单与云存档页共用，行为保持一致
 public static class SteamProcess

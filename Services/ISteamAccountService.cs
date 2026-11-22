@@ -1,7 +1,7 @@
 using SteamKit2;
 using SteamKit2.Authentication;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 public record LocalSteamAccount(string SteamId, string AccountName, string PersonaName, long Timestamp);
 public record SteamLoginResult(bool Success, string Message);

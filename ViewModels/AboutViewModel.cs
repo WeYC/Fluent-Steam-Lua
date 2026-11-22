@@ -1,9 +1,9 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
-using SteamLuaManager.Models;
-using SteamLuaManager.Services;
+using SteamLua.Models;
+using SteamLua.Services;
 
-namespace SteamLuaManager.ViewModels;
+namespace SteamLua.ViewModels;
 
 // 常见问题窗口的数据：问题列表 + 关键字过滤；VM 无外部依赖，由窗口直接持有
 public partial class AboutViewModel : ObservableObject

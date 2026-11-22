@@ -4,10 +4,10 @@ using iNKORE.UI.WPF.Modern;
 using iNKORE.UI.WPF.Modern.Controls.Helpers;
 using iNKORE.UI.WPF.Modern.Helpers.Styles;
 using Microsoft.Extensions.DependencyInjection;
-using SteamLuaManager.Services;
-using SteamLuaManager.ViewModels;
+using SteamLua.Services;
+using SteamLua.ViewModels;
 
-namespace SteamLuaManager.Views;
+namespace SteamLua.Views;
 
 // 常见问题独立窗口：非模态，可开着对照主界面操作；样式跟登录窗一致
 public partial class FaqWindow : Window

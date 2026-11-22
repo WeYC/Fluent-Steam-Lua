@@ -8,9 +8,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using SAM.API;
 using SAM.API.Types;
-using SteamLuaManager.Models;
+using SteamLua.Models;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 public sealed class SteamAchievementService : ISteamAchievementService
 {

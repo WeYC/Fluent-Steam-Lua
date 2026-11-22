@@ -1,6 +1,6 @@
 using System.Net.Http;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 // 手动获取已下线，这里只剩镜像测速（供内核包下载选源参考）。
 public class SteamManifestRepoService : ISteamManifestRepoService

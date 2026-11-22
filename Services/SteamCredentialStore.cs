@@ -1,6 +1,6 @@
 using Microsoft.Win32;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 /// <summary>
 /// OpenSteamTool 使用的 Steam 凭据注册表存储封装。

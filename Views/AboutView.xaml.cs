@@ -8,19 +8,14 @@ using System.Windows;
 using System.Windows.Controls;
 using iNKORE.UI.WPF.Modern.Controls;
 using Microsoft.Extensions.DependencyInjection;
-using SteamLuaManager;
-using SteamLuaManager.Services;
+using SteamLua;
+using SteamLua.Services;
 
-namespace SteamLuaManager.Views;
+namespace SteamLua.Views;
 
 public partial class AboutView : UserControl, INotifyPropertyChanged
 {
-    private const string ProjectUrl = "https://github.com/huanyuejue/Fluent-Steam-Lua";
-    private const string AfdianUrl = "https://afdian.com/a/HuanJue";
-    private const string TelegramUrl = "https://t.me/FluentSL";
-    private const string QqGroupNumber = "1054228162";
-    // 群官方 H5 分享链接：浏览器打开后调起 QQ 加群（mqqapi 私有协议新版 QQ 已不支持）
-    private const string QqGroupShareUrl = "https://qun.qq.com/universal-share/share?ac=1&authKey=MQ1TVyxN4lUMerzDnHMsl6bp7noFeScwL%2F6C7AhW12PJx9fBlfJt7k%2BJ9uo%2B1SGY&busi_data=eyJncm91cENvZGUiOiIxMDU0MjI4MTYyIiwidG9rZW4iOiJjOGZHRHJKemF4Qytwa1lyMUgxbHdKYnRRcjFqS0plWFBEb3VJVFFqWXc4NzBYUFlMNDlRcUludHJRZ3ovRW5yIiwidWluIjoiNjMwOTExODEzIn0%3D&data=Z5XGMODvXtiqhqhOreDKo3DW9BAsa1W-WfOUjRaP6twkkcvauHBJIJxmahQU2kaAwpyJB5wcxgVqlkIRpQRG1w&svctype=4&tempid=h5_group_info";
+    private const string ProjectUrl = "https://github.com/WeYC/SteamLua";
 
     // 附件列表项：存完整路径用于读取，界面只显示文件名
     private sealed class AttachedFileItem
@@ -75,17 +70,6 @@ public partial class AboutView : UserControl, INotifyPropertyChanged
         Process.Start(new ProcessStartInfo(ProjectUrl) { UseShellExecute = true });
     }
 
-    private void Afdian_Click(object sender, RoutedEventArgs e)
-    {
-        Process.Start(new ProcessStartInfo(AfdianUrl) { UseShellExecute = true });
-    }
-
-    // 邀请链接交给默认浏览器打开：装了 TG 客户端会被接管跳转，没装则停在网页版
-    private void Telegram_Click(object sender, RoutedEventArgs e)
-    {
-        Process.Start(new ProcessStartInfo(TelegramUrl) { UseShellExecute = true });
-    }
-
     private async void CheckUpdate_Click(object sender, RoutedEventArgs e)
     {
         try
@@ -102,73 +86,6 @@ public partial class AboutView : UserControl, INotifyPropertyChanged
         catch (Exception ex)
         {
             await ShowDialogAsync(L.Get("About_UpdFailTitle"), L.Get("About_UpdFailBody", ex.Message));
-        }
-    }
-
-    // 群满引导：问句下面补一行说明，指路右侧的 Telegram 群图标。
-    // 提示用次要色，跟主问句形成主次关系，不喧宾夺主
-    private static StackPanel BuildQqGroupContent()
-    {
-        var panel = new StackPanel { MaxWidth = 420 };
-        panel.Children.Add(new TextBlock
-        {
-            Text = L.Get("About_QqAsk"),
-            TextWrapping = TextWrapping.Wrap
-        });
-        var hint = new TextBlock
-        {
-            Text = L.Get("About_QqFullHint"),
-            TextWrapping = TextWrapping.Wrap,
-            Margin = new Thickness(0, 8, 0, 0),
-            Opacity = 0.7
-        };
-        hint.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorPrimaryBrush");
-        panel.Children.Add(hint);
-        return panel;
-    }
-
-    private async void QqGroup_Click(object sender, RoutedEventArgs e)
-    {
-        var dialog = new ContentDialog
-        {
-            Title = L.Get("About_QqTitle"),
-            // 群满提示独立成行并压低强调度：主问句在前，补充说明放在后面不抢视线
-            Content = BuildQqGroupContent(),
-            PrimaryButtonText = L.Get("About_QqJump"),
-            SecondaryButtonText = L.Get("About_QqCopy"),
-            CloseButtonText = L.Get("Common_Cancel"),
-            DefaultButton = ContentDialogButton.Primary
-        };
-        var result = await dialog.ShowAsync();
-        if (result == ContentDialogResult.Primary)
-        {
-            try
-            {
-                Process.Start(new ProcessStartInfo(QqGroupShareUrl) { UseShellExecute = true });
-            }
-            catch (Exception ex)
-            {
-                await ShowDialogAsync(L.Get("About_QqJumpFailTitle"), L.Get("About_QqJumpFailBody", ex.Message, QqGroupNumber));
-            }
-        }
-        else if (result == ContentDialogResult.Secondary)
-        {
-            var numberBox = new TextBox
-            {
-                Text = QqGroupNumber,
-                IsReadOnly = true,
-                FontSize = 16,
-                Padding = new Thickness(8, 6, 8, 6),
-                MinWidth = 280
-            };
-            numberBox.Loaded += (_, _) => { numberBox.Focus(); numberBox.SelectAll(); };
-            await new ContentDialog
-            {
-                Title = L.Get("About_QqCopy"),
-                Content = numberBox,
-                CloseButtonText = L.Get("App_Close"),
-                DefaultButton = ContentDialogButton.Close
-            }.ShowAsync();
         }
     }
 

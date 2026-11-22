@@ -9,11 +9,11 @@ using System.Runtime.InteropServices;
 using System.Text;
 using iNKORE.UI.WPF.Modern.Controls;
 using iNKORE.UI.WPF.Modern;
-using SteamLuaManager.Models;
-using SteamLuaManager.Services;
-using SteamLuaManager.ViewModels;
+using SteamLua.Models;
+using SteamLua.Services;
+using SteamLua.ViewModels;
 
-namespace SteamLuaManager.Views;
+namespace SteamLua.Views;
 
 public partial class HomeView : UserControl
 {

@@ -1,4 +1,4 @@
-namespace SteamLuaManager.Models;
+namespace SteamLua.Models;
 
 /// <summary>一份经过校验的 Denuvo 授权票据数据。UI 与日志只呈现字节数，绝不输出完整 hex。</summary>
 public sealed record TicketData(

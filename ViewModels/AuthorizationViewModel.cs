@@ -5,10 +5,10 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using iNKORE.UI.WPF.Modern.Controls;
 using Microsoft.Win32;
-using SteamLuaManager.Models;
-using SteamLuaManager.Services;
+using SteamLua.Models;
+using SteamLua.Services;
 
-namespace SteamLuaManager.ViewModels;
+namespace SteamLua.ViewModels;
 
 public partial class AuthorizationViewModel : ObservableObject, IDisposable
 {

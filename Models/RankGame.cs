@@ -1,6 +1,6 @@
-using SteamLuaManager.Services;
+using SteamLua.Services;
 
-namespace SteamLuaManager.Models;
+namespace SteamLua.Models;
 
 // 小黑盒热门榜单项：集合顺序即榜单名次
 public sealed record RankGame(int AppId, string Name, string CoverUrl, List<string> CoverCandidates, long Followers)

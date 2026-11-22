@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- 独立工具：不参与主程序构建，靠 tools 目录外的工程排除规则隔离 -->
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+</Project>

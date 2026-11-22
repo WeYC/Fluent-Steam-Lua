@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "版本号（例如 1.4.5；支持 1.4.8.1 或 1.4.8-fix，空格会自动转连字符）"
+        description: "版本号（例如 0.0.0；支持 0.0.0.0 或 0.0.0-fix，空格会自动转连字符）"
         required: true
       prerelease:
         description: "预发布版本"
@@ -35,30 +35,38 @@ jobs:
         run: |
           $raw = $env:VERSION_RAW.Trim()
           if ([string]::IsNullOrWhiteSpace($raw)) { throw "版本号不能为空" }
-          # 空格/下划线统一转连字符：1.4.8 fix → 1.4.8-fix（tag/文件名/csproj 都合法）
+          # 空格/下划线统一转连字符：0.0.0 fix → 0.0.0-fix（tag/文件名/csproj 都合法）
           $version = $raw -replace '[\s_]+', '-'
-          if ($version -notmatch '^\d+\.\d+\.\d+(\.\d+)?(-[0-9A-Za-z.-]+)?$') { throw "版本号格式非法，应为 x.y.z，可选 .w 或 -后缀（如 1.4.8.1、1.4.8-fix）；当前输入：$raw" }
+          if ($version -notmatch '^\d+\.\d+\.\d+(\.\d+)?(-[0-9A-Za-z.-]+)?$') {
+            throw "版本号格式非法，应为 x.y.z，可选 .w 或 -后缀（如 0.0.0.0、0.0.0-fix）；当前输入：$raw"
+          }
           git fetch --tags --quiet
           if (git tag --list $version) { throw "tag $version 已存在，停止" }
           "VERSION=$version" >> $env:GITHUB_ENV
-          "LOOSE_ZIP=Fluent-Steam-Lua-$version-loose-file.zip" >> $env:GITHUB_ENV
-          "SINGLE_ZIP=Fluent-Steam-Lua-$version-single-file.zip" >> $env:GITHUB_ENV
 
       - name: Bump csproj version and push
         shell: pwsh
         run: |
-          $csproj = 'SteamLuaManager.csproj'
+          $csproj = 'SteamLua.csproj'
           $text = [System.IO.File]::ReadAllText((Resolve-Path $csproj).Path)
           $updated = [System.Text.RegularExpressions.Regex]::Replace(
             $text, '<Version>[^<]*</Version>', '<Version>${{ env.VERSION }}</Version>')
-          if ($updated -eq $text) { throw 'csproj 中未找到 <Version> 节点' }
+          if ($updated -eq $text -and $text -notmatch '<Version>${{ env.VERSION }}</Version>') {
+            throw 'csproj 中未找到 <Version> 节点'
+          }
           [System.IO.File]::WriteAllText(
             (Resolve-Path $csproj).Path, $updated, (New-Object System.Text.UTF8Encoding($false)))
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
-          git add SteamLuaManager.csproj
-          git commit -m 'update: 版本号更新${{ env.VERSION }}'
-          git push origin HEAD:main
+          git add SteamLua.csproj
+          # 版本号已是目标值时没有可提交内容，git commit 会非零退出，需区分
+          git diff --cached --quiet
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host '版本号未变化，跳过提交'
+          } else {
+            git commit -m "update: 版本号更新${{ env.VERSION }}"
+            git push origin HEAD:main
+          }
 
       - name: Create tag
         shell: pwsh
@@ -67,24 +75,134 @@ jobs:
           git push origin '${{ env.VERSION }}'
 
       - name: Publish loose-file version
-        run: dotnet publish SteamLuaManager.csproj -c Release -r win-x64 --self-contained false -p:DebugType=none -p:Version=${{ env.VERSION }} -o publish/loose
+        run: dotnet publish SteamLua.csproj -c Release -r win-x64 --self-contained false -p:DebugType=none -p:Version=${{ env.VERSION }} -o publish/loose
 
       - name: Publish single-file version
-        run: dotnet publish SteamLuaManager.csproj -c Release -r win-x64 --self-contained false -p:DebugType=none -p:AppExeName="Fluent Steam Lua" -p:PublishSingleFile=true -p:Version=${{ env.VERSION }} -o publish/single
+        run: dotnet publish SteamLua.csproj -c Release -r win-x64 --self-contained false -p:DebugType=none -p:AppExeName="SteamLua" -p:PublishSingleFile=true -p:Version=${{ env.VERSION }} -o publish/single
 
-      - name: Pack archives
+      # windows-latest 未预装 Inno Setup，且官方安装包不含简体中文语言文件
+      # （installer/SteamLua.iss 的 [Languages] 引用了它，缺文件会编译失败）
+      - name: Install Inno Setup
         shell: pwsh
         run: |
-          Compress-Archive -Path publish/loose/* -DestinationPath $env:LOOSE_ZIP
-          Compress-Archive -Path publish/single/* -DestinationPath $env:SINGLE_ZIP
-          Get-ChildItem *.zip | Select-Object Name, Length
+          $ErrorActionPreference = 'Stop'
+          $Version = '6.7.4'
+
+          $candidates = @(
+            'C:\Program Files (x86)\Inno Setup 6\ISCC.exe',
+            'C:\Program Files\Inno Setup 6\ISCC.exe',
+            "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe"
+          )
+          $iscc = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+
+          if (-not $iscc) {
+            $tag = 'is-' + ($Version -replace '\.', '_')
+            $url = "https://github.com/jrsoftware/issrc/releases/download/$tag/innosetup-$Version.exe"
+            $installer = Join-Path $env:RUNNER_TEMP "innosetup-$Version.exe"
+            Write-Host "下载 Inno Setup $Version : $url"
+
+            $ok = $false
+            for ($i = 1; $i -le 3; $i++) {
+              try {
+                Invoke-WebRequest -Uri $url -OutFile $installer -UseBasicParsing -TimeoutSec 600
+                if ((Test-Path $installer) -and (Get-Item $installer).Length -gt 3MB) { $ok = $true; break }
+              } catch {
+                Write-Host "  第 $i 次下载失败: $($_.Exception.Message)"
+                Start-Sleep -Seconds 5
+              }
+            }
+            if (-not $ok) { throw "Inno Setup 下载失败：$url" }
+
+            $proc = Start-Process -FilePath $installer `
+              -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-' -PassThru -Wait
+            if ($proc.ExitCode -ne 0) { throw "Inno Setup 安装失败，退出码 $($proc.ExitCode)" }
+
+            $iscc = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+            if (-not $iscc) {
+              $iscc = Get-ChildItem 'C:\Program Files*\Inno Setup*\ISCC.exe' -ErrorAction SilentlyContinue |
+                Select-Object -First 1 -ExpandProperty FullName
+            }
+            if (-not $iscc) { throw '已安装 Inno Setup，但找不到 ISCC.exe' }
+          }
+
+          $chinese = Join-Path (Split-Path $iscc -Parent) 'Languages\ChineseSimplified.isl'
+          if (-not (Test-Path $chinese)) {
+            Write-Host '下载简体中文语言文件'
+            Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/jrsoftware/issrc/main/Files/Languages/ChineseSimplified.isl' `
+              -OutFile $chinese -UseBasicParsing -TimeoutSec 120
+            if ((Get-Item $chinese).Length -lt 5000) { throw 'ChineseSimplified.isl 内容异常（疑似下载到错误页）' }
+          }
+
+          Write-Host "ISCC: $iscc"
+          "ISCC=$iscc" >> $env:GITHUB_ENV
+
+      # 打包三件套，两个 zip 内部套一层版本目录
+      - name: Build packages
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $Version = '${{ env.VERSION }}'
+          if ([string]::IsNullOrWhiteSpace($Version)) { throw 'VERSION 为空' }
+          $OutputDir = 'publish/dist'
+          $looseSrc = 'publish/loose'
+          $singleSrc = 'publish/single'
+
+          foreach ($dir in @($looseSrc, $singleSrc)) {
+            if (-not (Test-Path $dir)) { throw "缺少发布目录：$dir（请先执行 dotnet publish）" }
+          }
+
+          # 结构守卫：主程序依赖必须与 exe 同级（deps.json 未声明 probing path），
+          # 且运行期数据不得混进发布包
+          foreach ($f in 'SteamLua.exe', 'SteamLua.dll', 'SteamLua.deps.json', 'SteamLua.runtimeconfig.json') {
+            if (-not (Test-Path "$looseSrc/$f")) { throw "缺少与 exe 同级的依赖：$f" }
+          }
+          foreach ($leak in 'settings.json', 'app.log', 'cache', 'bindings.json') {
+            if (Test-Path "$looseSrc/$leak") { throw "运行期数据不应出现在发布包：$leak" }
+          }
+
+          New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
+          # Inno 的 OutputDir 若为相对路径会拼到 .iss 所在目录，统一转绝对路径
+          $OutputDir = (Resolve-Path $OutputDir).Path
+          $looseZip = Join-Path $OutputDir "SteamLua-$Version-loose-file.zip"
+          $singleZip = Join-Path $OutputDir "SteamLua-$Version-single-file.zip"
+          $setupExe = Join-Path $OutputDir "SteamLua-$Version-setup.exe"
+          Remove-Item $looseZip, $singleZip, $setupExe -Force -ErrorAction SilentlyContinue
+
+          $stage = Join-Path $env:RUNNER_TEMP "pkg-$Version"
+          Remove-Item $stage -Recurse -Force -ErrorAction SilentlyContinue
+          $looseRoot = Join-Path $stage "SteamLua-$Version"
+          $singleRoot = Join-Path $stage "SteamLua-$Version-single"
+          New-Item -ItemType Directory -Path $looseRoot -Force | Out-Null
+          New-Item -ItemType Directory -Path $singleRoot -Force | Out-Null
+          Copy-Item "$looseSrc/*" -Destination $looseRoot -Recurse
+          Copy-Item "$singleSrc/*" -Destination $singleRoot -Recurse
+          Compress-Archive -Path $looseRoot -DestinationPath $looseZip
+          Compress-Archive -Path $singleRoot -DestinationPath $singleZip
+
+          $iscc = $env:ISCC
+          if ([string]::IsNullOrWhiteSpace($iscc) -or -not (Test-Path $iscc)) { throw '未找到 ISCC.exe' }
+          Write-Host "编译安装程序：$iscc"
+          & $iscc "/DMyAppVersion=$Version" "/DMySourceDir=$((Resolve-Path $looseSrc).Path)" "/DMyOutputDir=$OutputDir" 'installer/SteamLua.iss'
+          if ($LASTEXITCODE -ne 0) { throw "安装程序编译失败，退出码 $LASTEXITCODE" }
+
+          Get-ChildItem $OutputDir | Select-Object Name, @{N = 'MB'; E = { [math]::Round($_.Length / 1MB, 2) } }
+
+          "LOOSE_ZIP=$looseZip" >> $env:GITHUB_ENV
+          "SINGLE_ZIP=$singleZip" >> $env:GITHUB_ENV
+          "SETUP_EXE=$setupExe" >> $env:GITHUB_ENV
 
       - name: Compose release notes
         shell: pwsh
         run: |
-          $header = '# Fluent Steam Lua 管理工具 ${{ env.VERSION }}'
+          $header = '# SteamLua ${{ env.VERSION }}'
+          # 占位符替换成实际文件名（Release 附件里文件名即下载链接文字）
+          $looseName = Split-Path $env:LOOSE_ZIP -Leaf
+          $singleName = Split-Path $env:SINGLE_ZIP -Leaf
+          $setupName = Split-Path $env:SETUP_EXE -Leaf
           $footer = Get-Content .github/RELEASE_FOOTER.md -Raw -Encoding utf8NoBOM
-          $footer = $footer.Replace('{LOOSE_ZIP}', $env:LOOSE_ZIP).Replace('{SINGLE_ZIP}', $env:SINGLE_ZIP)
+          $footer = $footer.Replace('{LOOSE_ZIP}', $looseName)
+          $footer = $footer.Replace('{SINGLE_ZIP}', $singleName)
+          $footer = $footer.Replace('{SETUP_EXE}', $setupName)
           Set-Content release-notes.md -Value ($header + "`n`n" + $footer) -Encoding utf8NoBOM
           Get-Content release-notes.md -Encoding utf8NoBOM
 
@@ -99,3 +217,4 @@ jobs:
           files: |
             ${{ env.LOOSE_ZIP }}
             ${{ env.SINGLE_ZIP }}
+            ${{ env.SETUP_EXE }}

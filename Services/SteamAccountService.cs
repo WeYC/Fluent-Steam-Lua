@@ -6,7 +6,7 @@ using SteamKit2.Authentication;
 using CdnClient = SteamKit2.CDN.Client;
 using CdnServer = SteamKit2.CDN.Server;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 // 账号会话服务：自己持有一个 SteamClient 连接（和 SteamAppInfoService 的匿名会话隔离，互不顶登录态）。
 // 登录三路：本机记住的凭证（local.vdf DPAPI 解密）> refresh token > 账号密码+2FA。
@@ -14,7 +14,7 @@ public class SteamAccountService : ISteamAccountService
 {
     private const int ConnectTimeoutSeconds = 30;
     private const int LogonTimeoutSeconds = 30;
-    private const string TokenEntropyPrefix = "FluentSteamLua:";
+    private const string TokenEntropyPrefix = "SteamLua:";
 
     private readonly ISettingsService _settingsService;
     private readonly ISteamPathService _steamPathService;

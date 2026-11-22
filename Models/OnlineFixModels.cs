@@ -1,4 +1,4 @@
-namespace SteamLuaManager.Models;
+namespace SteamLua.Models;
 
 // OnlineFix 补丁搜索条目：online-fix.me 搜索页解析产物
 public sealed record OnlineFixSearchResult(

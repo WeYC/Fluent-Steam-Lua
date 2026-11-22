@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using SteamLuaManager.Models;
-using SteamLuaManager.Services;
+using SteamLua.Models;
+using SteamLua.Services;
 
-namespace SteamLuaManager.ViewModels;
+namespace SteamLua.ViewModels;
 
 /// <summary>成就管理页 VM：游戏列表展示、搜索、排序筛选；成就编辑在独立窗口（AchievementEditWindow）中进行。</summary>
 public partial class AchievementViewModel : ObservableObject, IDisposable
@@ -249,7 +249,7 @@ public partial class AchievementViewModel : ObservableObject, IDisposable
         var appId = (int)game.AppId;
         var parts = new List<string>();
 
-        var local = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "cache", "covers", $"{appId}.jpg");
+        var local = Path.Combine(AppDataPaths.CacheDir, "covers", $"{appId}.jpg");
         if (File.Exists(local))
             parts.Add(new Uri(local).AbsoluteUri);
 

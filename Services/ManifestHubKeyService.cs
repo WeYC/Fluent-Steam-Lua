@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 public interface IManifestHubKeyService
 {

@@ -7,9 +7,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using SteamLuaManager.Services;
+using SteamLua.Services;
 
-namespace SteamLuaManager.Controls;
+namespace SteamLua.Controls;
 
 /// <summary>
 /// 异步加载远程图片的 Image：绑定 SourceUrl 后由调用方触发 BeginLoad()（懒加载），
@@ -241,7 +241,7 @@ public class AsyncImage : Image
         }
         if (_storeApi == null)
         {
-            _storeApi = SteamLuaManager.App.ServiceProvider?.GetService(typeof(ISteamApiService)) as ISteamApiService;
+            _storeApi = SteamLua.App.ServiceProvider?.GetService(typeof(ISteamApiService)) as ISteamApiService;
         }
         if (_storeApi == null) return null;
         return await _storeApi.ResolveHeaderUrlAsync(appId);

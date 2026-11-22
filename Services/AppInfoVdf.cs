@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 /// <summary>
 /// 解析 Steam 的 appinfo.vdf（V40/V41 二进制格式）。

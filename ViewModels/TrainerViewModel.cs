@@ -14,11 +14,11 @@ using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using iNKORE.UI.WPF.Modern.Controls;
-using SteamLuaManager.Models;
-using SteamLuaManager.Services;
-using SteamLuaManager.Views;
+using SteamLua.Models;
+using SteamLua.Services;
+using SteamLua.Views;
 
-namespace SteamLuaManager.ViewModels;
+namespace SteamLua.ViewModels;
 
 public partial class TrainerViewModel : ObservableObject, IDisposable
 {
@@ -174,7 +174,7 @@ public partial class TrainerViewModel : ObservableObject, IDisposable
     public ObservableCollection<DownloadedTrainerItem> DownloadedTrainers { get; } = new();
     public ObservableCollection<TrainerBinding> TrainerBindings { get; } = new();
 
-    private static string CacheDir => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Cache", "trainers");
+    private static string CacheDir => Path.Combine(AppDataPaths.CacheDir, "trainers");
 
     public TrainerViewModel(ITrainerService trainerService, IHttpClientProvider httpClientProvider,
         ISettingsService settingsService,
@@ -457,8 +457,9 @@ public partial class TrainerViewModel : ObservableObject, IDisposable
         EnsureBindingsHooked();
     }
 
-    private static string SharedBindingsPath => Path.Combine(
-        MonitorDir, "bindings.json");
+    // 绑定配置放用户可写目录：SvcMonitor 与主程序必须读写同一份文件，
+    // 而安装目录（Program Files）对普通用户只读
+    private static string SharedBindingsPath => AppDataPaths.Combine("bindings.json");
 
     [RelayCommand]
     private void SaveBindings()
@@ -503,7 +504,7 @@ public partial class TrainerViewModel : ObservableObject, IDisposable
 
     private static string MonitorExePath => Path.Combine(MonitorDir, "SvcMonitor.exe");
 
-    private const string RegistryRunName = "SteamLuaManagerMonitor";
+    private const string RegistryRunName = "SteamLuaMonitor";
 
     private bool IsMonitorInstalled()
     {
@@ -622,7 +623,7 @@ public partial class TrainerViewModel : ObservableObject, IDisposable
         {
             Directory.CreateDirectory(targetDir);
             var assembly = Assembly.GetExecutingAssembly();
-            const string resourceName = "SteamLuaManager.Resources.SvcMonitor.zip";
+            const string resourceName = "SteamLua.Resources.SvcMonitor.zip";
             using var stream = assembly.GetManifestResourceStream(resourceName);
             if (stream == null) return false;
             using var zip = new ZipArchive(stream);

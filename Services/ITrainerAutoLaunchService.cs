@@ -1,6 +1,6 @@
-using SteamLuaManager.Models;
+using SteamLua.Models;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 public interface ITrainerAutoLaunchService : IDisposable
 {

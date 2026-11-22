@@ -3,9 +3,9 @@ using System.IO;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
-using SteamLuaManager.Models;
+using SteamLua.Models;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 public class SteamApiService : ISteamApiService
 {
@@ -35,7 +35,7 @@ public class SteamApiService : ISteamApiService
 		_httpClientProvider = httpClientProvider;
 		_selectedCdnIndex = Math.Clamp(_settingsService.Load().SelectedCdnIndex, 0, CdnEndpoint.Defaults.Count - 1);
 
-		_cacheDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "cache");
+		_cacheDir = AppDataPaths.CacheDir;
 		_coversDir = Path.Combine(_cacheDir, "covers");
 		_cacheFilePath = Path.Combine(_cacheDir, "gameinfo.json");
 

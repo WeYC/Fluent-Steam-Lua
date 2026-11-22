@@ -4,9 +4,9 @@
 (function () {
   'use strict';
 
-  const BUTTON_ID = 'fluent-lua-import-btn';
+  const BUTTON_ID = 'steamlua-import-btn';
   const PURCHASE_SELECTOR = '#game_area_purchase';
-  const INJECTED_FLAG = 'fluentLuaInjected';
+  const INJECTED_FLAG = 'steamLuaInjected';
 
   // 主商店页判定：路径必须是 /app/<数字> 或 /app/<数字>/<名字>/
   function resolveAppId() {
@@ -37,9 +37,9 @@
     const btn = document.createElement('button');
     btn.id = BUTTON_ID;
     btn.type = 'button';
-    btn.className = 'fluent-lua-btn';
+    btn.className = 'steamlua-btn';
     btn.textContent = '一键入库';
-    btn.title = '调用 Fluent Steam Lua 生成入库文件';
+    btn.title = '调用 SteamLua 生成入库文件';
     return btn;
   }
 
@@ -54,7 +54,7 @@
     const map = {
       bridge_unavailable: {
         text: '桥接服务未启动',
-        detail: '请打开 Fluent Steam Lua，在设置中开启「商店页一键入库」'
+        detail: '请打开 SteamLua，在设置中开启「商店页一键入库」'
       },
       method_not_allowed: { text: '请求被拒绝', detail: '桥接服务不接受当前请求方式' },
       invalid_appid: { text: 'AppID 无效', detail: '无法从当前页面识别游戏，请确认是游戏主页' },
@@ -86,7 +86,7 @@
     let holdMs = 3200;
     try {
       const resp = await chrome.runtime.sendMessage({
-        type: 'fluent-import',
+        type: 'steamlua-import',
         appId: appId,
         name: readGameName()
       });
@@ -116,22 +116,22 @@
     // 结果提示留一会儿再复原，避免按钮永久卡在结果态
     setTimeout(() => {
       btn.disabled = false;
-      btn.title = '调用 Fluent Steam Lua 生成入库文件';
+      btn.title = '调用 SteamLua 生成入库文件';
       setState(btn, '', '一键入库');
     }, holdMs);
   }
 
   /// 桥接未启动时在按钮下方浮出一个提示条，比按钮上的短字更容易被注意到
   function showBridgeHint() {
-    const existing = document.getElementById('fluent-lua-hint');
+    const existing = document.getElementById('steamlua-hint');
     if (existing) existing.remove();
 
     const box = document.createElement('div');
-    box.id = 'fluent-lua-hint';
-    box.className = 'fluent-lua-hint';
+    box.id = 'steamlua-hint';
+    box.className = 'steamlua-hint';
     box.innerHTML =
       '<strong>桥接服务未运行</strong>' +
-      '<span>打开 Fluent Steam Lua，在「设置」里开启「商店页一键入库」后重试。</span>';
+      '<span>打开 SteamLua，在「设置」里开启「商店页一键入库」后重试。</span>';
 
     const btn = document.getElementById(BUTTON_ID);
     if (btn && btn.parentNode) {

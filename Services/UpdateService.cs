@@ -4,7 +4,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 public sealed record UpdateCheckResult(bool HasUpdate, Version CurrentVersion, Version LatestVersion, string TagName, string ReleaseUrl, string ReleaseNotes, string LooseAssetUrl, string SingleAssetUrl);
 
@@ -16,21 +16,21 @@ public interface IUpdateService
 public class UpdateService : IUpdateService
 {
     private readonly IHttpClientProvider _httpClientProvider;
-    private const string ProjectUrl = "https://github.com/huanyuejue/Fluent-Steam-Lua";
-    private const string LatestReleaseApiUrl = "https://api.github.com/repos/huanyuejue/Fluent-Steam-Lua/releases/latest";
+    private readonly ISettingsService _settingsService;
+    private const string ProjectUrl = "https://github.com/WeYC/SteamLua";
+    private const string LatestReleaseApiUrl = "https://api.github.com/repos/WeYC/SteamLua/releases/latest";
 
-    public UpdateService(IHttpClientProvider httpClientProvider)
+    public UpdateService(IHttpClientProvider httpClientProvider, ISettingsService settingsService)
     {
         _httpClientProvider = httpClientProvider;
+        _settingsService = settingsService;
     }
 
     public async Task<UpdateCheckResult> CheckForUpdateAsync(CancellationToken ct = default)
     {
-        var json = await _httpClientProvider.SendWithProxyRetryAsync(
-            "app-update-check",
-            TimeSpan.FromSeconds(20),
-            client => client.GetStringAsync(LatestReleaseApiUrl, ct),
-            HttpHeaderHelper.ConfigureApp);
+        // 更新检查也要走镜像：国内直连 api.github.com 经常超时，
+        // 用户若在设置里选了镜像则优先它，否则直连优先、镜像兜底
+        var json = await FetchLatestReleaseJsonAsync(ct);
 
         using var doc = JsonDocument.Parse(json);
         var tagName = doc.RootElement.GetProperty("tag_name").GetString() ?? string.Empty;
@@ -54,6 +54,41 @@ public class UpdateService : IUpdateService
 
         var hasUpdate = CompareRelease((latestNumeric, latestSuffix), (currentNumeric, currentSuffix)) > 0;
         return new UpdateCheckResult(hasUpdate, currentNumeric, latestNumeric, tagName, releaseUrl, releaseNotes, looseAssetUrl, singleAssetUrl);
+    }
+
+    // 按用户偏好依次尝试直连与各镜像，任一成功即返回。
+    // 全部失败时抛出最后一个异常，交由上层显示"检查更新失败"。
+    private async Task<string> FetchLatestReleaseJsonAsync(CancellationToken ct)
+    {
+        string? preferredHost = null;
+        try { preferredHost = _settingsService.Load().ManifestMirror; } catch { }
+
+        var sources = GitHubMirror.ApiMirrors(LatestReleaseApiUrl, preferredHost);
+        Exception? lastError = null;
+        for (var i = 0; i < sources.Count; i++)
+        {
+            ct.ThrowIfCancellationRequested();
+            try
+            {
+                return await _httpClientProvider.SendWithProxyRetryAsync(
+                    "app-update-check",
+                    TimeSpan.FromSeconds(20),
+                    client => client.GetStringAsync(sources[i], ct),
+                    HttpHeaderHelper.ConfigureApp);
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                lastError = ex;
+                if (i < sources.Count - 1)
+                    LogService.Warn(L.Get("LogCat_Update"),
+                        L.Get("Svc_UpdSourceFailed", GitHubMirror.SourceDisplayName(sources[i]), ex.Message));
+            }
+        }
+        throw lastError ?? new InvalidOperationException(L.Get("Svc_UpdNoSource"));
     }
 
     // 按包名匹配散文件与单文件包的下载地址：新规范后缀优先命中，

@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace FluentLuaBridge;
+namespace SteamLuaBridge;
 
 /// <summary>
 /// 内存回收。

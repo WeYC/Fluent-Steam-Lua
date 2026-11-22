@@ -5,7 +5,7 @@ using Serilog.Events;
 using SteamAutoCrack.Core.Utils;
 using SacConfig = SteamAutoCrack.Core.Config.Config;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 // 免启动破解桥接：进程内调用 vendored Core（CrackTool/，已改 net8/x64）。
 // 两件必须事：路径重定向（对方默认全写程序目录）+ Serilog 日志桥（否则进度黑盒）。
@@ -25,7 +25,7 @@ public sealed class CrackToolService : ICrackToolService, IDisposable
         _settingsService = settingsService;
     }
 
-    public string CacheRoot => Path.Combine(AppContext.BaseDirectory, "cache", "cracktool");
+    public string CacheRoot => Path.Combine(AppDataPaths.CacheDir, "cracktool");
 
     public void Dispose()
     {

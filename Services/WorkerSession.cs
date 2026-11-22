@@ -7,7 +7,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 /// <summary>
 /// 常驻 worker 子进程会话：一个游戏对应一个子进程，进程内 SteamAppId 上下文固定，
@@ -39,7 +39,7 @@ public sealed class WorkerSession : IDisposable
         var pipeName = $"steam_lua_worker_{appId}_{Guid.NewGuid():N}";
         var psi = new ProcessStartInfo
         {
-            FileName = Environment.ProcessPath ?? "SteamLuaManager.exe",
+            FileName = Environment.ProcessPath ?? "SteamLua.exe",
             Arguments = $"--worker serve {appId} {pipeName}",
             WorkingDirectory = Path.GetDirectoryName(Environment.ProcessPath) ?? string.Empty,
             UseShellExecute = false,

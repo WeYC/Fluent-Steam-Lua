@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 // 应用内多语言服务：首次启动跟随系统显示语言，词库内嵌 JSON。
 // 加新语言三步：1) 照抄 Resources/Lang/en.json 翻译一份（如 ja.json）；
@@ -114,7 +114,7 @@ public sealed class LocalizationService : INotifyPropertyChanged
         try
         {
             var asm = Assembly.GetExecutingAssembly();
-            var name = $"SteamLuaManager.Resources.Lang.{code}.json";
+            var name = $"SteamLua.Resources.Lang.{code}.json";
             using var stream = asm.GetManifestResourceStream(name);
             if (stream == null) return null;
             using var reader = new StreamReader(stream);

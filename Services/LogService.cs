@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 public static class LogService
 {
@@ -13,7 +13,7 @@ public static class LogService
 
     public static bool IsEnabled => _enabled;
 
-    public static string LogFilePath { get; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app.log");
+    public static string LogFilePath { get; } = AppDataPaths.Combine("app.log");
 
     public static void SetEnabled(bool enabled)
     {

@@ -6,7 +6,7 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 public sealed record CloudSaveStatus(
     bool CloudEnabled,
@@ -100,7 +100,7 @@ public interface ICloudRedirectService
 public class CloudRedirectService : ICloudRedirectService
 {
     private const string DllFileName = "cloud_redirect.dll";
-    private const string EmbeddedResourceName = "SteamLuaManager.Resources.CloudRedirectDll.zip";
+    private const string EmbeddedResourceName = "SteamLua.Resources.CloudRedirectDll.zip";
 
     private readonly ISteamPathService _steamPathService;
     private readonly CloudProviderStore _store;

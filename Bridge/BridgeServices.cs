@@ -2,9 +2,9 @@ using System;
 using System.IO;
 using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
-using SteamLuaManager.Services;
+using SteamLua.Services;
 
-namespace FluentLuaBridge;
+namespace SteamLuaBridge;
 
 /// <summary>
 /// 桥接进程的最小服务容器。只注册入库必需的服务，

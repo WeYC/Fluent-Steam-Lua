@@ -3,10 +3,10 @@ using System.Text.Json;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using SteamLuaManager.Models;
-using SteamLuaManager.Services;
+using SteamLua.Models;
+using SteamLua.Services;
 
-namespace SteamLuaManager.ViewModels;
+namespace SteamLua.ViewModels;
 
 // AppID 查询窗：用目录末级名（多为游戏英文名）调小黑盒优先、Steam 商店兜底搜出候选，选中回填
 public partial class AppIdQueryViewModel : ObservableObject, IDisposable

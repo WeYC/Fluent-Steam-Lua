@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace FluentLuaBridge;
+namespace SteamLuaBridge;
 
 /// <summary>
 /// 入库行为链中的单个步骤。界面上是按时间顺序追加的行为记录，

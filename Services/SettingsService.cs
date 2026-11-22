@@ -1,8 +1,8 @@
 using System.IO;
 using System.Text.Json;
-using SteamLuaManager.Models;
+using SteamLua.Models;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 public class AppSettings
 {
@@ -19,7 +19,6 @@ public class AppSettings
     public string Language { get; set; } = LocalizationService.GetSystemLanguage();
     public string DownloadMode { get; set; } = "DepotKey";
     public string KeyFolderPath { get; set; } = string.Empty;
-    public bool IsFabVisible { get; set; } = true;
     public bool IsCardRefreshVisible { get; set; } = true;
     public string SelectedTheme { get; set; } = "System";
     public bool AutoCheckUpdateEnabled { get; set; } = true;
@@ -68,7 +67,8 @@ public class SettingsService : ISettingsService
 
     public SettingsService()
     {
-        _settingsFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "settings.json");
+        // 落在用户可写目录：安装到 Program Files 后安装目录只读，写不进去会丢配置
+        _settingsFilePath = AppDataPaths.Combine("settings.json");
     }
 
     public AppSettings Load()

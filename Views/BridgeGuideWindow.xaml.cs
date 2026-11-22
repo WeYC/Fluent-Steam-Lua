@@ -10,9 +10,9 @@ using iNKORE.UI.WPF.Modern.Controls;
 using iNKORE.UI.WPF.Modern.Controls.Helpers;
 using iNKORE.UI.WPF.Modern.Helpers.Styles;
 using Microsoft.Extensions.DependencyInjection;
-using SteamLuaManager.Services;
+using SteamLua.Services;
 
-namespace SteamLuaManager.Views;
+namespace SteamLua.Views;
 
 /// <summary>
 /// 扩展安装引导。Steam 内置浏览器不允许用 URL 协议直达扩展页，
@@ -310,12 +310,12 @@ public partial class BridgeGuideWindow : Window
         if (bridgeRunning)
         {
             SetPill(BridgeStatePill, BridgeStateText, L.Get("Bridge_BridgeReady"), true);
-            BridgeProcessText.Text = "FluentLuaBridge.exe";
+            BridgeProcessText.Text = "SteamLuaBridge.exe";
         }
         else if (bridgeDeployed)
         {
             SetPill(BridgeStatePill, BridgeStateText, L.Get("Bridge_BridgeStopped"), false);
-            BridgeProcessText.Text = "FluentLuaBridge.exe";
+            BridgeProcessText.Text = "SteamLuaBridge.exe";
         }
         else
         {

@@ -1,4 +1,4 @@
-namespace SteamLuaManager.Models;
+namespace SteamLua.Models;
 
 /// <summary>内核检测到新版本通知消息（启动检测 → 主页横幅）。</summary>
 public sealed class KernelUpdateAvailableMessage

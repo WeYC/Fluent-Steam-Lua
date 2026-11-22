@@ -7,7 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 // 复刻上游 companion 的 OAuth 回环登录：浏览器拉起授权、本地 HttpListener 收码、
 // 换 token 后按 DLL 约定的 {access_token, refresh_token, expires_at} 落盘，DLL 负责后续自动刷新。

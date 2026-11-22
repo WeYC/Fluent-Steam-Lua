@@ -1,4 +1,4 @@
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 // 清单抓取策略抽象：ManifestHub 直下文件 与 Code 取码+CDN 下载共用同一套监听引擎。
 public sealed record ManifestFetchResult(

@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.Http;
 using System.IO;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 public record ManifestHubResult(bool Success, bool KeyInvalid, string? PlacedPath, string? Error, bool NotFound = false, int? StatusCode = null);
 

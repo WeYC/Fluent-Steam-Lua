@@ -1,8 +1,8 @@
 using System.Net.Http;
 using System.Text.Json;
-using SteamLuaManager.Models;
+using SteamLua.Models;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 // 小黑盒国内搜索源：入库前置的名字搜索与 appid 精确补位优先走这里，
 // 搜不到再降级到现有国外链路。未公开接口，解析按缺字段即跳过处理。

@@ -9,10 +9,10 @@ using System.Text.RegularExpressions;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using SteamLuaManager.Models;
-using SteamLuaManager.Services;
+using SteamLua.Models;
+using SteamLua.Services;
 
-namespace SteamLuaManager.ViewModels;
+namespace SteamLua.ViewModels;
 
 // 远程清单仓库里没有这个游戏的包：与网络故障区分开，不重试也不提示检查网络。
 // 只覆盖仓库侧表达"对象不存在"的那几个状态码，其余仍走普通失败重试

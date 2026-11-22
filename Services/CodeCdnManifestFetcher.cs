@@ -4,7 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.IO;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 // Code 直下：按固定顺序向 5 个上游取 manifest_request_code，
 // 再从官方 Steam CDN 下载 manifest 文件。失败/超时才试下一个源，挂掉的源冷却 60s。

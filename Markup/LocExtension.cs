@@ -1,8 +1,8 @@
 using System.Windows.Data;
 using System.Windows.Markup;
-using SteamLuaManager.Services;
+using SteamLua.Services;
 
-namespace SteamLuaManager.Markup;
+namespace SteamLua.Markup;
 
 // XAML 用法：Text="{l:Loc Nav_Home}"，语言切换时自动刷新，无需重启。
 // 实现是转交一个单向绑定到 LocalizationService 的索引器，刷新靠全局 PropertyChanged。

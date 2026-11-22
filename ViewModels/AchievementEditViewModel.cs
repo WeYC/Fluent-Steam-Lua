@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using SteamLuaManager.Models;
-using SteamLuaManager.Services;
+using SteamLua.Models;
+using SteamLua.Services;
 
-namespace SteamLuaManager.ViewModels;
+namespace SteamLua.ViewModels;
 
 /// <summary>成就编辑窗口 VM：持有常驻 worker 会话，窗口生命周期内多次加载/保存不重启游戏。</summary>
 public partial class AchievementEditViewModel : ObservableObject, IDisposable

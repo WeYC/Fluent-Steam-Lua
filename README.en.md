@@ -1,4 +1,4 @@
-# Fluent Steam Lua Manager
+# SteamLua
 
 <p>
   <a href="README.md">
@@ -12,29 +12,29 @@
   </a>
 </p>
 
-A modern, lightweight Steam Lua library manager built with WPF + Fluent Design. Currently supports OpenSteamTool only.
+A modern, lightweight Steam Lua library manager built with WPF. Currently supports OpenSteamTool only.
 
-> Project page: https://huanyuejue.github.io/Fluent-Steam-Lua/
+> Project page: https://weyc.github.io/SteamLua/
 
-> FSL Telegram group: [Click to join](https://t.me/FluentSL)
+> SteamLua Telegram group: [Click to join](https://t.me/SteamLua)
 
 ## Preview
 
 <table>
   <tr>
     <td align="center">
-      <img src="https://raw.githubusercontent.com/huanyuejue/Fluent-Steam-Lua/assets/screenshots/home.gif" width="400" />
+      <img src="assets/screenshots/home.gif" width="400" />
     </td>
     <td align="center">
-      <img src="https://raw.githubusercontent.com/huanyuejue/Fluent-Steam-Lua/assets/screenshots/ruku.gif" width="400" />
+      <img src="assets/screenshots/ruku.gif" width="400" />
     </td>
   </tr>
   <tr>
     <td align="center">
-      <img src="https://raw.githubusercontent.com/huanyuejue/Fluent-Steam-Lua/assets/screenshots/setting.gif" width="400" />
+      <img src="assets/screenshots/setting.gif" width="400" />
     </td>
     <td align="center">
-      <img src="https://raw.githubusercontent.com/huanyuejue/Fluent-Steam-Lua/assets/screenshots/dlc.gif" width="400" />
+      <img src="assets/screenshots/dlc.gif" width="400" />
     </td>
   </tr>
 </table>
@@ -87,7 +87,7 @@ A modern, lightweight Steam Lua library manager built with WPF + Fluent Design. 
 
 #### Other
 - Automatic file change monitoring and cache refresh
-- Modern Fluent Design interface, built with WPF for easy debugging
+- Modern interface, built with WPF for easy debugging
 - Theme support: follow system / dark / light
 - Backdrop support: Acrylic / Mica / none
 - Multi-language UI (Simplified Chinese / English), switchable in settings with immediate effect and no restart
@@ -106,11 +106,11 @@ Prerequisites: [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0). T
 Publish as a single-file executable:
 
 ```cmd
-dotnet publish SteamLuaManager.csproj -c Release -r win-x64 --self-contained false -p:DebugType=none -p:AppExeName="Fluent Steam Lua" -p:PublishSingleFile=true -o publish/single
+dotnet publish SteamLua.csproj -c Release -r win-x64 --self-contained false -p:DebugType=none -p:AppExeName="SteamLua" -p:PublishSingleFile=true -o publish/single
 ```
 
 Publish as loose files:
 
 ```cmd
-dotnet publish SteamLuaManager.csproj -c Release -r win-x64 --self-contained false -p:DebugType=none -o publish/loose
+dotnet publish SteamLua.csproj -c Release -r win-x64 --self-contained false -p:DebugType=none -o publish/loose
 ```

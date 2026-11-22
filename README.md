@@ -1,4 +1,4 @@
-# Fluent Steam Lua 管理工具
+# SteamLua
 
 <p>
   <a href="README.md">
@@ -12,31 +12,31 @@
   </a>
 </p>
 
-基于 WPF + Fluent Design 开发的现代化轻量级 Steam Lua 入库管理工具，目前仅适配OpenSteamTool
+基于 WPF 开发的现代化轻量级 Steam Lua 入库管理工具，目前仅适配OpenSteamTool
 
-> 项目介绍页：https://huanyuejue.github.io/Fluent-Steam-Lua/
+> 项目介绍页：https://weyc.github.io/SteamLua/
 
-> FSL项目TG聊天反馈群：[点击跳转加入](https://t.me/FluentSL)
+> SteamLua 项目 TG 交流群：[点击跳转加入](https://t.me/SteamLua)
 
-> FSL项目QQ聊天反馈群：[点击跳转加入](https://qun.qq.com/universal-share/share?ac=1&authKey=MQ1TVyxN4lUMerzDnHMsl6bp7noFeScwL%2F6C7AhW12PJx9fBlfJt7k%2BJ9uo%2B1SGY&busi_data=eyJncm91cENvZGUiOiIxMDU0MjI4MTYyIiwidG9rZW4iOiJjOGZHRHJKemF4Qytwa1lyMUgxbHdKYnRRcjFqS0plWFBEb3VJVFFqWXc4NzBYUFlMNDlRcUludHJRZ3ovRW5yIiwidWluIjoiNjMwOTExODEzIn0%3D&data=Z5XGMODvXtiqhqhOreDKo3DW9BAsa1W-WfOUjRaP6twkkcvauHBJIJxmahQU2kaAwpyJB5wcxgVqlkIRpQRG1w&svctype=4&tempid=h5_group_info) 或 复制群号：1054228162
+> SteamLua 项目 QQ 交流群：[点击跳转加入](https://qun.qq.com/universal-share/share?ac=1&authKey=MQ1TVyxN4lUMerzDnHMsl6bp7noFeScwL%2F6C7AhW12PJx9fBlfJt7k%2BJ9uo%2B1SGY&busi_data=eyJncm91cENvZGUiOiIxMDU0MjI4MTYyIiwidG9rZW4iOiJjOGZHRHJKemF4Qytwa1lyMUgxbHdKYnRRcjFqS0plWFBEb3VJVFFqWXc4NzBYUFlMNDlRcUludHJRZ3ovRW5yIiwidWluIjoiNjMwOTExODEzIn0%3D&data=Z5XGMODvXtiqhqhOreDKo3DW9BAsa1W-WfOUjRaP6twkkcvauHBJIJxmahQU2kaAwpyJB5wcxgVqlkIRpQRG1w&svctype=4&tempid=h5_group_info) 或 复制群号：1054228162
 
 ## 预览
 
 <table>
   <tr>
     <td align="center">
-      <img src="https://raw.githubusercontent.com/huanyuejue/Fluent-Steam-Lua/assets/screenshots/home.gif" width="400" />
+      <img src="assets/screenshots/home.gif" width="400" />
     </td>
     <td align="center">
-      <img src="https://raw.githubusercontent.com/huanyuejue/Fluent-Steam-Lua/assets/screenshots/ruku.gif" width="400" />
+      <img src="assets/screenshots/ruku.gif" width="400" />
     </td>
   </tr>
   <tr>
     <td align="center">
-      <img src="https://raw.githubusercontent.com/huanyuejue/Fluent-Steam-Lua/assets/screenshots/setting.gif" width="400" />
+      <img src="assets/screenshots/setting.gif" width="400" />
     </td>
     <td align="center">
-      <img src="https://raw.githubusercontent.com/huanyuejue/Fluent-Steam-Lua/assets/screenshots/dlc.gif" width="400" />
+      <img src="assets/screenshots/dlc.gif" width="400" />
     </td>
   </tr>
 </table>
@@ -89,7 +89,7 @@
 
 #### 特性
 - 文件变更自动监控并刷新缓存
-- 基于 Fluent Design 的现代化界面，使用WPF编译，方便调试
+- 现代化界面，使用WPF编译，方便调试
 - 主题支持 跟随系统/深色模式/浅色模式
 - 背景色支持 亚克力/云母/无效果
 - 界面支持多语言（简体中文 / English），设置内切换即时生效，无需重启
@@ -109,11 +109,11 @@
 发布为单文件可执行程序：
 
 ```cmd
-dotnet publish SteamLuaManager.csproj -c Release -r win-x64 --self-contained false -p:DebugType=none -p:AppExeName="Fluent Steam Lua" -p:PublishSingleFile=true -o publish/single
+dotnet publish SteamLua.csproj -c Release -r win-x64 --self-contained false -p:DebugType=none -p:AppExeName="SteamLua" -p:PublishSingleFile=true -o publish/single
 ```
 
 发布为散文件可执行程序：
 
 ```cmd
-dotnet publish SteamLuaManager.csproj -c Release -r win-x64 --self-contained false -p:DebugType=none -o publish/loose
+dotnet publish SteamLua.csproj -c Release -r win-x64 --self-contained false -p:DebugType=none -o publish/loose
 ```

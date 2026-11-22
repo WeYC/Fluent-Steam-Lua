@@ -1,4 +1,4 @@
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 public interface ISteamManifestService
 {

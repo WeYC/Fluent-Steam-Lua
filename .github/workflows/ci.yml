@@ -22,22 +22,161 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
+      # 读出版本号，供后续产物命名使用
+      - name: Read version
+        id: version
+        shell: pwsh
+        run: |
+          $text = [System.IO.File]::ReadAllText((Resolve-Path 'SteamLua.csproj').Path)
+          $m = [regex]::Match($text, '<Version>([^<]+)</Version>')
+          if (-not $m.Success) { throw 'csproj 中未找到 <Version> 节点' }
+          "value=$($m.Groups[1].Value)" >> $env:GITHUB_OUTPUT
+          Write-Host "版本: $($m.Groups[1].Value)"
+
       - name: Publish loose-file version
-        run: dotnet publish SteamLuaManager.csproj -c Release -r win-x64 --self-contained false -p:DebugType=none -o publish/loose
+        run: dotnet publish SteamLua.csproj -c Release -r win-x64 --self-contained false -p:DebugType=none -o publish/loose
 
       - name: Publish single-file version
-        run: dotnet publish SteamLuaManager.csproj -c Release -r win-x64 --self-contained false -p:DebugType=none -p:AppExeName="Fluent Steam Lua" -p:PublishSingleFile=true -o publish/single
+        run: dotnet publish SteamLua.csproj -c Release -r win-x64 --self-contained false -p:DebugType=none -p:AppExeName="SteamLua" -p:PublishSingleFile=true -o publish/single
+
+      # windows-latest 未预装 Inno Setup，且官方安装包不含简体中文语言文件
+      # （installer/SteamLua.iss 的 [Languages] 引用了它，缺文件会编译失败）
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $Version = '6.7.4'
+
+          $candidates = @(
+            'C:\Program Files (x86)\Inno Setup 6\ISCC.exe',
+            'C:\Program Files\Inno Setup 6\ISCC.exe',
+            "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe"
+          )
+          $iscc = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+
+          if (-not $iscc) {
+            $tag = 'is-' + ($Version -replace '\.', '_')
+            $url = "https://github.com/jrsoftware/issrc/releases/download/$tag/innosetup-$Version.exe"
+            $installer = Join-Path $env:RUNNER_TEMP "innosetup-$Version.exe"
+            Write-Host "下载 Inno Setup $Version : $url"
+
+            # 个别网络下 TLS 握手会失败，重试几次
+            $ok = $false
+            for ($i = 1; $i -le 3; $i++) {
+              try {
+                Invoke-WebRequest -Uri $url -OutFile $installer -UseBasicParsing -TimeoutSec 600
+                if ((Test-Path $installer) -and (Get-Item $installer).Length -gt 3MB) { $ok = $true; break }
+              } catch {
+                Write-Host "  第 $i 次下载失败: $($_.Exception.Message)"
+                Start-Sleep -Seconds 5
+              }
+            }
+            if (-not $ok) { throw "Inno Setup 下载失败：$url" }
+
+            $proc = Start-Process -FilePath $installer `
+              -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-' -PassThru -Wait
+            if ($proc.ExitCode -ne 0) { throw "Inno Setup 安装失败，退出码 $($proc.ExitCode)" }
+
+            $iscc = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+            if (-not $iscc) {
+              $iscc = Get-ChildItem 'C:\Program Files*\Inno Setup*\ISCC.exe' -ErrorAction SilentlyContinue |
+                Select-Object -First 1 -ExpandProperty FullName
+            }
+            if (-not $iscc) { throw '已安装 Inno Setup，但找不到 ISCC.exe' }
+          }
+
+          $chinese = Join-Path (Split-Path $iscc -Parent) 'Languages\ChineseSimplified.isl'
+          if (-not (Test-Path $chinese)) {
+            Write-Host '下载简体中文语言文件'
+            Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/jrsoftware/issrc/main/Files/Languages/ChineseSimplified.isl' `
+              -OutFile $chinese -UseBasicParsing -TimeoutSec 120
+            # 空文件或 HTML 错误页会让后续编译以奇怪方式失败，提前拦住
+            if ((Get-Item $chinese).Length -lt 5000) { throw 'ChineseSimplified.isl 内容异常（疑似下载到错误页）' }
+          }
+
+          Write-Host "ISCC: $iscc"
+          "ISCC=$iscc" >> $env:GITHUB_ENV
+
+      # 打包三件套：散文件 zip、单文件 zip、安装程序。
+      # 两个 zip 内部套一层版本目录，解压得到干净文件夹而非散落一堆文件。
+      - name: Build packages
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $Version = '${{ steps.version.outputs.value }}'
+          if ([string]::IsNullOrWhiteSpace($Version)) {
+            throw '版本号为空：上一步 Read version 未产出 value'
+          }
+          # 版本号会进入文件名与 Inno 的 VersionInfoVersion，先校验格式
+          if ($Version -notmatch '^\d+\.\d+\.\d+') {
+            throw "版本号格式非法：$Version"
+          }
+          $OutputDir = 'publish/dist'
+          $looseSrc = 'publish/loose'
+          $singleSrc = 'publish/single'
+
+          foreach ($dir in @($looseSrc, $singleSrc)) {
+            if (-not (Test-Path $dir)) { throw "缺少发布目录：$dir（请先执行 dotnet publish）" }
+          }
+
+          # 结构守卫：主程序依赖必须与 exe 同级。
+          # deps.json 未声明 probing path，DLL 挪进子目录会直接启动失败。
+          foreach ($f in 'SteamLua.exe', 'SteamLua.dll', 'SteamLua.deps.json', 'SteamLua.runtimeconfig.json') {
+            if (-not (Test-Path "$looseSrc/$f")) { throw "缺少与 exe 同级的依赖：$f" }
+          }
+          # 运行期数据写到 %LocalAppData%，绝不能混进发布包
+          foreach ($leak in 'settings.json', 'app.log', 'cache', 'bindings.json') {
+            if (Test-Path "$looseSrc/$leak") { throw "运行期数据不应出现在发布包：$leak" }
+          }
+
+          New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
+          # Inno 的 OutputDir 若为相对路径会拼到 .iss 所在目录，统一转绝对路径
+          $OutputDir = (Resolve-Path $OutputDir).Path
+          $looseZip = Join-Path $OutputDir "SteamLua-$Version-loose-file.zip"
+          $singleZip = Join-Path $OutputDir "SteamLua-$Version-single-file.zip"
+          $setupExe = Join-Path $OutputDir "SteamLua-$Version-setup.exe"
+          Remove-Item $looseZip, $singleZip, $setupExe -Force -ErrorAction SilentlyContinue
+
+          $stage = Join-Path $env:RUNNER_TEMP "pkg-$Version"
+          Remove-Item $stage -Recurse -Force -ErrorAction SilentlyContinue
+          $looseRoot = Join-Path $stage "SteamLua-$Version"
+          $singleRoot = Join-Path $stage "SteamLua-$Version-single"
+          New-Item -ItemType Directory -Path $looseRoot -Force | Out-Null
+          New-Item -ItemType Directory -Path $singleRoot -Force | Out-Null
+          Copy-Item "$looseSrc/*" -Destination $looseRoot -Recurse
+          Copy-Item "$singleSrc/*" -Destination $singleRoot -Recurse
+          Compress-Archive -Path $looseRoot -DestinationPath $looseZip
+          Compress-Archive -Path $singleRoot -DestinationPath $singleZip
+
+          $iscc = $env:ISCC
+          if ([string]::IsNullOrWhiteSpace($iscc) -or -not (Test-Path $iscc)) { throw '未找到 ISCC.exe' }
+          Write-Host "编译安装程序：$iscc"
+          & $iscc "/DMyAppVersion=$Version" "/DMySourceDir=$((Resolve-Path $looseSrc).Path)" "/DMyOutputDir=$OutputDir" 'installer/SteamLua.iss'
+          if ($LASTEXITCODE -ne 0) { throw "安装程序编译失败，退出码 $LASTEXITCODE" }
+
+          Get-ChildItem $OutputDir | Select-Object Name, @{N = 'MB'; E = { [math]::Round($_.Length / 1MB, 2) } }
+
+          "LOOSE_ZIP=$looseZip" >> $env:GITHUB_ENV
+          "SINGLE_ZIP=$singleZip" >> $env:GITHUB_ENV
+          "SETUP_EXE=$setupExe" >> $env:GITHUB_ENV
 
       - name: Upload loose-file artifact
         uses: actions/upload-artifact@v5
         with:
-          name: loose-file
-          path: publish/loose/
+          name: SteamLua-${{ steps.version.outputs.value }}-loose-file
+          path: ${{ env.LOOSE_ZIP }}
           retention-days: 7
 
       - name: Upload single-file artifact
         uses: actions/upload-artifact@v5
         with:
-          name: single-file
-          path: publish/single/
+          name: SteamLua-${{ steps.version.outputs.value }}-single-file
+          path: ${{ env.SINGLE_ZIP }}
+          retention-days: 7
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: SteamLua-${{ steps.version.outputs.value }}-setup
+          path: ${{ env.SETUP_EXE }}
           retention-days: 7

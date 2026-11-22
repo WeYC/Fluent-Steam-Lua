@@ -1,4 +1,4 @@
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 /// <summary>
 /// 通过 SteamKit2 + AppAccessToken 向 Steam 服务器查询完整 appinfo 的兜底服务。

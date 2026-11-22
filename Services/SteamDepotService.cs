@@ -4,9 +4,9 @@ using System.Runtime;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using SteamLuaManager.Models;
+using SteamLua.Models;
 
-namespace SteamLuaManager.Services;
+namespace SteamLua.Services;
 
 public class SteamDepotService : ISteamDepotService
 {
@@ -44,10 +44,10 @@ public class SteamDepotService : ISteamDepotService
 
         // 缓存目录可由外层指定：桥接进程与主程序共用同一份密钥库，
         // 否则两边各存一份 depotkeys.json，白占几十兆还要各自联网更新
-        var cacheOverride = Environment.GetEnvironmentVariable("FLUENT_CACHE_DIR");
+        var cacheOverride = Environment.GetEnvironmentVariable("STEAM_LUA_CACHE_DIR");
         _cacheFolder = !string.IsNullOrWhiteSpace(cacheOverride)
             ? cacheOverride
-            : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "cache");
+            : AppDataPaths.CacheDir;
 
         if (!Directory.Exists(_cacheFolder))
             Directory.CreateDirectory(_cacheFolder);
@@ -476,7 +476,7 @@ public class SteamDepotService : ISteamDepotService
             if (queryResult == null) return null;
 
             var sb = new StringBuilder();
-            sb.AppendLine("-- lua by Fluent-Steam-Lua (https://github.com/huanyuejue/Fluent-Steam-Lua)");
+            sb.AppendLine("-- lua by SteamLua (https://github.com/WeYC/SteamLua)");
             sb.AppendLine();
             var matchedItems = 0;
 

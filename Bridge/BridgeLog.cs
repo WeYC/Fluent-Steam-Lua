@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace FluentLuaBridge;
+namespace SteamLuaBridge;
 
 /// <summary>
 /// 桥接进程的轻量日志。主程序不在场时出问题只能靠它定位，
@@ -20,7 +20,7 @@ internal static class BridgeLog
         // 这样排查问题时主程序日志与桥接日志在一起，不用满盘找
         try
         {
-            var dir = Environment.GetEnvironmentVariable("FLUENT_LOG_DIR");
+            var dir = Environment.GetEnvironmentVariable("STEAM_LUA_LOG_DIR");
             if (!string.IsNullOrWhiteSpace(dir))
             {
                 return Path.Combine(dir, "bridge.log");

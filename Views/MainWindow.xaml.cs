@@ -1,31 +1,27 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Animation;
-using System.Windows.Interop;
 using System.Windows.Threading;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Win32;
 using iNKORE.UI.WPF.Modern;
 using iNKORE.UI.WPF.Modern.Controls;
 using iNKORE.UI.WPF.Modern.Controls.Helpers;
 using iNKORE.UI.WPF.Modern.Helpers.Styles;
-using SteamLuaManager.Services;
-using SteamLuaManager.ViewModels;
+using SteamLua.Services;
+using SteamLua.ViewModels;
 
-namespace SteamLuaManager.Views;
+namespace SteamLua.Views;
 
 public partial class MainWindow : Window
 {
-    private readonly string[] _navOrder = ["Home", "ScriptDownload", "Manifest", "Extraction", "Authorization", "Trainer", "Achievement", "CloudSave", "OnlineFix", "CrackTool", "Settings", "About"];
+    private readonly string[] _navOrder = ["Home", "ScriptDownload", "Manifest", "Extraction", "Authorization", "Trainer", "Achievement", "CloudSave", "OnlineFix", "CrackTool", "Pattern", "Steam", "Settings", "About"];
     private string _prevTag = "Home";
 
     /// <summary>当前页面 tag，供全局操作日志标注上下文。</summary>
@@ -55,21 +51,12 @@ public partial class MainWindow : Window
     private readonly CloudSaveView _cloudSaveView;
     private readonly OnlineFixView _onlineFixView;
     private readonly CrackToolView _crackToolView;
+    private readonly PatternView _patternView;
+    private readonly SteamView _steamView;
     private readonly AboutView _aboutView;
     private readonly IOpenSteamToolService _openSteamToolService;
     private TrayIconManager? _trayIcon;
     private bool _exitRequested;
-
-    // 拖拽状态
-    private bool _isDragging;
-    private Point _dragStartPoint;
-    private Border? _accountMenuTrigger;
-
-    // 浮动按钮初始位置（右下角偏移）
-    private const double FabInitRight = 24;
-    private const double FabInitBottom = 24;
-    private const double FabSize = 44;
-    private const double FabPanelGap = 8;
 
     // 侧栏最小展开宽度（紧凑模式下的中文基线），以及图标+间距+左右内边距+右侧留白占用宽度
     private const double MinPaneLength = 105;
@@ -113,13 +100,14 @@ public partial class MainWindow : Window
         _cloudSaveView = new CloudSaveView { DataContext = cloudSaveViewModel };
         _onlineFixView = new OnlineFixView { DataContext = onlineFixViewModel };
         _crackToolView = new CrackToolView { DataContext = crackToolViewModel };
+        _patternView = new PatternView(openSteamToolService, steamPathService);
+        _steamView = new SteamView(steamPathService);
         _aboutView = new AboutView();
         ContentTransition.Content = _homeView;
-        BuildSteamMenu();
 
         settingsViewModel.PropertyChanged += SettingsViewModel_PropertyChanged;
         Closed += MainWindow_Closed;
-        // 标题与 FAB 菜单只在窗口构建时求值一次，切语言需重新生成才不会残留旧语言
+        // 标题只在窗口构建时求值一次，切语言需重新生成才不会残留旧语言
         LocalizationService.Instance.PropertyChanged += OnLocalizationChanged;
     }
 
@@ -184,6 +172,8 @@ public partial class MainWindow : Window
                     "CloudSave" => CloudSaveItem,
                     "OnlineFix" => OnlineFixItem,
                     "CrackTool" => CrackToolItem,
+                    "Pattern" => PatternItem,
+                    "Steam" => SteamItem,
                     "Settings" => SettingsItem,
                     "About" => AboutItem,
                     _ => null
@@ -218,14 +208,6 @@ public partial class MainWindow : Window
             case nameof(SettingsViewModel.SelectedBackdrop):
                 UpdateBackdrop(svm.SelectedBackdrop);
                 break;
-            case nameof(SettingsViewModel.IsFabVisible):
-                FabCanvas.Visibility = svm.IsFabVisible ? Visibility.Visible : Visibility.Collapsed;
-                if (!svm.IsFabVisible)
-                {
-                    SteamPanel.Visibility = Visibility.Collapsed;
-                    AccountSubmenu.Visibility = Visibility.Collapsed;
-                }
-                break;
             case nameof(SettingsViewModel.IsCardRefreshVisible):
                 _viewModel.IsCardRefreshVisible = svm.IsCardRefreshVisible;
                 break;
@@ -259,48 +241,6 @@ public partial class MainWindow : Window
         if (obj is IDisposable d) d.Dispose();
     }
 
-    private void RepositionFab()
-    {
-        if (FabCanvas.ActualWidth <= 0 || FabCanvas.ActualHeight <= 0) return;
-        var fabLeft = FabCanvas.ActualWidth - FabInitRight - FabSize;
-        var fabTop = FabCanvas.ActualHeight - FabInitBottom - FabSize;
-        Canvas.SetLeft(SteamFab, Math.Max(0, fabLeft));
-        Canvas.SetTop(SteamFab, Math.Max(0, fabTop));
-        PositionSteamPanel();
-    }
-
-    private void PositionSteamPanel()
-    {
-        var panelW = SteamPanel.ActualWidth > 0 ? SteamPanel.ActualWidth : 130;
-        var panelH = SteamPanel.ActualHeight > 0 ? SteamPanel.ActualHeight : 120;
-        var canvasW = FabCanvas.ActualWidth;
-        var canvasH = FabCanvas.ActualHeight;
-
-        var fabLeft = Canvas.GetLeft(SteamFab);
-        var fabTop = Canvas.GetTop(SteamFab);
-        var fabCenterX = fabLeft + FabSize / 2;
-
-        // 水平：优先居中，右侧溢出则靠右对齐，左侧溢出则靠左
-        var panelLeft = fabCenterX - panelW / 2;
-        if (panelLeft + panelW > canvasW - FabPanelGap)
-            panelLeft = canvasW - panelW - FabPanelGap;
-        if (panelLeft < FabPanelGap)
-            panelLeft = FabPanelGap;
-
-        // 垂直：优先在 FAB 上方，顶部空间不够则放在下方
-        var panelTop = fabTop - FabPanelGap - panelH;
-        if (panelTop < FabPanelGap)
-            panelTop = fabTop + FabSize + FabPanelGap;
-
-        Canvas.SetLeft(SteamPanel, panelLeft);
-        Canvas.SetTop(SteamPanel, panelTop);
-    }
-
-    private void SteamPanel_SizeChanged(object sender, SizeChangedEventArgs e)
-    {
-        PositionSteamPanel();
-    }
-
     private void RefreshTitle()
     {
         var status = _steamPathService.DetectSteamToolType() switch
@@ -313,25 +253,9 @@ public partial class MainWindow : Window
         Title = L.Get("Main_TitleFormat", status);
     }
 
-    // 菜单项文本由 record 固化，切语言时整体重建 ItemsSource 才能替换为新语言
-    private void BuildSteamMenu()
-    {
-        SteamMenuList.ItemsSource = new[]
-        {
-            new FabMenuItem("start", L.Get("Main_FabStart"), "\uE768"),
-            FabMenuItem.Separator(),
-            new FabMenuItem("restart", L.Get("Main_FabRestart"), "\uE777"),
-            FabMenuItem.Separator(),
-            new FabMenuItem("account", L.Get("Main_FabAccount"), "\uE77B", HasSubmenu: true),
-            FabMenuItem.Separator(),
-            new FabMenuItem("kernel", L.Get("Main_FabKernel"), "\uE737")
-        };
-    }
-
     private void OnLocalizationChanged(object? sender, PropertyChangedEventArgs e)
     {
         RefreshTitle();
-        BuildSteamMenu();
         // 导航项宽度取自 Content（由 {l:Loc} 绑定填充），绑定刷新与本次回调的先后顺序 WPF 不保证，
         // 延后到本轮回调队列末尾再量宽，确保读到的是新语言文本
         Dispatcher.BeginInvoke(new Action(UpdatePaneLength), DispatcherPriority.Loaded);
@@ -378,7 +302,9 @@ public partial class MainWindow : Window
         UpdateBackdropTheme(ThemeManager.Current.ActualApplicationTheme == ApplicationTheme.Light);
         UpdateBackdrop(settings.SelectedBackdrop);
         _settingsViewModel.SelectedBackdrop = settings.SelectedBackdrop;
-        FabCanvas.Visibility = settings.IsFabVisible ? Visibility.Visible : Visibility.Collapsed;
+
+        // 引导用户去「模式」页处理内核时不回到主页，否则刚跳过去又被打回去
+        var navigatedToPattern = false;
 
         var kernelStatus = _viewModel.OpenSteamToolStatus;
         if (kernelStatus == L.Get("Home_KernelMissing"))
@@ -396,7 +322,10 @@ public partial class MainWindow : Window
                 L.Get("Main_ForeignBody", foreignName),
                 L.Get("Main_Purify"));
             if (goPurify)
-                OpenSteamToolWindow();
+            {
+                NavigateTo("Pattern");
+                navigatedToPattern = true;
+            }
         }
 
         // OST 已安装时检测逻辑优先返回，开机即便混装了第三方也不会报；
@@ -413,7 +342,10 @@ public partial class MainWindow : Window
                         L.Get("Main_ConflictBody", string.Join("\n", foreign.Select(f => $"• {f.RelativePath}（{f.Owner}）"))),
                         L.Get("Main_Purify"));
                     if (goPurifyMixed)
-                        OpenSteamToolWindow();
+                    {
+                        NavigateTo("Pattern");
+                        navigatedToPattern = true;
+                    }
                 }
             }
             catch (Exception ex)
@@ -422,8 +354,8 @@ public partial class MainWindow : Window
             }
         }
 
-        HomeItem.IsSelected = true;
-        RepositionFab();
+        if (!navigatedToPattern)
+            HomeItem.IsSelected = true;
 
         SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
     }
@@ -534,60 +466,12 @@ public partial class MainWindow : Window
             WindowHelper.SetAcrylic10Color(this, Color.FromArgb(0xCC, 0x1E, 0x1E, 0x1E));
             BackdropHelper.ApplyDarkMode(this);
         }
-        UpdateFabPanelBackground();
-    }
-
-    private void UpdateFabPanelBackground()
-    {
-        var isLight = ThemeManager.Current.ActualApplicationTheme == ApplicationTheme.Light;
-        var color = isLight
-            ? Color.FromArgb(0xFF, 0xF2, 0xF2, 0xF2)
-            : Color.FromArgb(0xFF, 0x2D, 0x2D, 0x2D);
-        var brush = new SolidColorBrush(color) { Opacity = 0.85 };
-        SteamPanel.Background = brush;
-        AccountSubmenu.Background = brush;
-        SteamFab.Background = brush;
-    }
-
-    private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
-    {
-        RepositionFab();
-    }
-
-    private async void Window_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-    {
-        if (SteamPanel.Visibility != Visibility.Visible) return;
-        var source = e.OriginalSource as DependencyObject;
-        while (source != null)
-        {
-            if (source == FabCanvas) return;
-            source = GetParentSafe(source);
-        }
-        AccountSubmenu.Visibility = Visibility.Collapsed;
-        ((Storyboard)SteamPanel.Resources["ClosePanel"]).Begin(SteamPanel);
-        await Task.Delay(100);
-        SteamPanel.Visibility = Visibility.Collapsed;
-    }
-
-    // OriginalSource 可能是 TextBlock 内的 Run 等 ContentElement（非 Visual），
-    // 直接调 VisualTreeHelper.GetParent 会抛"不是 Visual 或 Visual3D"，非 Visual 走逻辑树。
-    private static DependencyObject? GetParentSafe(DependencyObject obj)
-    {
-        try
-        {
-            if (obj is System.Windows.Media.Visual || obj is System.Windows.Media.Media3D.Visual3D)
-                return System.Windows.Media.VisualTreeHelper.GetParent(obj);
-        }
-        catch { }
-        return LogicalTreeHelper.GetParent(obj);
     }
 
     private void NavView_SelectionChanged(object sender, NavigationViewSelectionChangedEventArgs args)
     {
         if (args.SelectedItem is not NavigationViewItem item || item.Tag is not string tag)
             return;
-
-        SteamPanel.Visibility = Visibility.Collapsed;
 
         if (tag != "ScriptDownload")
         {
@@ -659,6 +543,8 @@ public partial class MainWindow : Window
             "CloudSave" => _cloudSaveView,
             "OnlineFix" => _onlineFixView,
             "CrackTool" => _crackToolView,
+            "Pattern" => _patternView,
+            "Steam" => _steamView,
             "About" => _aboutView,
             _ => null
         };
@@ -691,6 +577,11 @@ public partial class MainWindow : Window
         else if (tag == "CrackTool")
         {
             _crackToolViewModel.OnNavigatedTo();
+        }
+        else if (tag == "Pattern")
+        {
+            // 每次进入都重新读磁盘状态：内核可能刚被外部装/卸过
+            _patternView.RefreshState();
         }
     }
 
@@ -813,324 +704,4 @@ public partial class MainWindow : Window
         }
     }
 
-    // ========== 浮动按钮 ==========
-
-    private void SteamFab_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-    {
-        _isDragging = false;
-        _dragStartPoint = e.GetPosition(FabCanvas);
-        SteamFab.CaptureMouse();
-    }
-
-    private void SteamFab_MouseMove(object sender, MouseEventArgs e)
-    {
-        if (e.LeftButton != MouseButtonState.Pressed) return;
-
-        var pos = e.GetPosition(FabCanvas);
-        var dx = pos.X - _dragStartPoint.X;
-        var dy = pos.Y - _dragStartPoint.Y;
-
-        if (Math.Abs(dx) > 5 || Math.Abs(dy) > 5)
-            _isDragging = true;
-
-        if (!_isDragging) return;
-
-        const double margin = 8;
-        var newLeft = Canvas.GetLeft(SteamFab) + dx;
-        var newTop = Canvas.GetTop(SteamFab) + dy;
-
-        newLeft = Math.Max(margin, Math.Min(FabCanvas.ActualWidth - FabSize - margin, newLeft));
-        newTop = Math.Max(margin, Math.Min(FabCanvas.ActualHeight - FabSize - margin, newTop));
-
-        Canvas.SetLeft(SteamFab, newLeft);
-        Canvas.SetTop(SteamFab, newTop);
-        _dragStartPoint = pos;
-        PositionSteamPanel();
-    }
-
-    private void SteamFab_LostMouseCapture(object sender, MouseEventArgs e)
-    {
-        if (Mouse.LeftButton != MouseButtonState.Pressed)
-            _isDragging = false;
-    }
-
-    private async void SteamFab_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-    {
-        SteamFab.ReleaseMouseCapture();
-
-        if (!_isDragging)
-        {
-            var show = SteamPanel.Visibility != Visibility.Visible;
-            if (show)
-            {
-                SteamPanel.Visibility = Visibility.Visible;
-                PositionSteamPanel();
-                ((Storyboard)SteamPanel.Resources["OpenPanel"]).Begin(SteamPanel);
-            }
-            else
-            {
-                AccountSubmenu.Visibility = Visibility.Collapsed;
-                ((Storyboard)SteamPanel.Resources["ClosePanel"]).Begin(SteamPanel);
-                await Task.Delay(100);
-                SteamPanel.Visibility = Visibility.Collapsed;
-            }
-        }
-    }
-
-    private void FabMenuItem_MouseEnter(object sender, MouseEventArgs e)
-    {
-        if (sender is not Border b) return;
-
-        b.Background = (Brush)Application.Current.FindResource("SystemControlHighlightListMediumBrush");
-        if (b.Tag is not FabMenuItem item) return;
-
-        switch (item.Action)
-        {
-            case "account":
-                _accountMenuTrigger = b;
-                ShowAccountSubmenu(b);
-                break;
-        }
-    }
-
-    private void FabMenuItem_MouseLeave(object sender, MouseEventArgs e)
-    {
-        if (sender is not Border b) return;
-
-        b.Background = Brushes.Transparent;
-        if (b.Tag is not FabMenuItem item) return;
-
-        if (item.Action == "account")
-            _ = DelayedHideSubmenuAsync(AccountSubmenu, b);
-    }
-
-    private async void FabMenuItem_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-    {
-        if (sender is not Border { Tag: FabMenuItem item }) return;
-        LogService.Info(L.Get("LogCat_Op"), L.Get("Main_LogFabMenu", item.Header));
-
-        switch (item.Action)
-        {
-            case "start":
-                SteamPanel.Visibility = Visibility.Collapsed;
-                var startResult = SteamProcess.LaunchSteam(_steamPathService);
-                if (!startResult.Ok)
-                    await ShowModernDialogAsync(startResult.Title, startResult.Message);
-                break;
-            case "restart":
-                SteamPanel.Visibility = Visibility.Collapsed;
-                var restartResult = SteamProcess.RestartSteam(_steamPathService);
-                if (!restartResult.Ok)
-                    await ShowModernDialogAsync(restartResult.Title, restartResult.Message);
-                break;
-            case "kernel":
-                SteamPanel.Visibility = Visibility.Collapsed;
-                OpenSteamToolWindow();
-                break;
-        }
-    }
-
-    // OST 管理独立成窗后不再走二级菜单：模态打开，同一时刻只允许一个实例
-    private void OpenSteamToolWindow()
-    {
-        var win = new OpenSteamToolWindow(_openSteamToolService, _steamPathService) { Owner = this };
-        win.ShowDialog();
-    }
-
-    // ========== Steam 账号切换 ==========
-
-    private sealed record FabMenuItem(string Action, string Header, string Glyph, bool HasSubmenu = false, bool IsSeparator = false)
-    {
-        public static FabMenuItem Separator() => new("separator", string.Empty, string.Empty, IsSeparator: true);
-    }
-
-    private class SteamAccount
-    {
-        public string SteamId { get; set; } = "";
-        public string AccountName { get; set; } = "";
-        public string PersonaName { get; set; } = "";
-        public string? AvatarPath { get; set; }
-        public bool IsSeparator { get; set; }
-
-        public static SteamAccount Separator() => new() { IsSeparator = true };
-    }
-
-    private List<SteamAccount>? _cachedAccounts;
-
-    private void AccountSubmenu_MouseEnter(object sender, MouseEventArgs e)
-    {
-        // 鼠标进入子菜单，保持显示
-    }
-
-    private void AccountSubmenu_MouseLeave(object sender, MouseEventArgs e)
-    {
-        // 鼠标离开子菜单，延迟隐藏
-        if (_accountMenuTrigger != null)
-            _ = DelayedHideSubmenuAsync(AccountSubmenu, _accountMenuTrigger);
-    }
-
-    private async Task DelayedHideSubmenuAsync(Border submenu, Border trigger)
-    {
-        await Task.Delay(200);
-        if (submenu.Visibility != Visibility.Visible) return;
-        if (submenu.IsMouseOver || trigger.IsMouseOver) return;
-        ((Storyboard)submenu.Resources["CloseSubmenu"]).Begin(submenu);
-        await Task.Delay(80);
-        submenu.Visibility = Visibility.Collapsed;
-    }
-
-    private void ShowAccountSubmenu(Border trigger)
-    {
-        _cachedAccounts = ParseLoginUsersVdf();
-        if (_cachedAccounts == null || _cachedAccounts.Count == 0)
-        {
-            AccountSubmenu.Visibility = Visibility.Collapsed;
-            return;
-        }
-
-        var steamPath = _steamPathService.DetectSteamPath();
-        if (!string.IsNullOrEmpty(steamPath))
-        {
-            foreach (var acc in _cachedAccounts)
-            {
-                var avatarPath = System.IO.Path.Combine(steamPath, "config", "avatarcache", $"{acc.SteamId}.png");
-                if (System.IO.File.Exists(avatarPath))
-                    acc.AvatarPath = avatarPath;
-            }
-        }
-
-        var displayAccounts = new List<SteamAccount>();
-        for (var i = 0; i < _cachedAccounts.Count; i++)
-        {
-            if (i > 0)
-                displayAccounts.Add(SteamAccount.Separator());
-            displayAccounts.Add(_cachedAccounts[i]);
-        }
-
-        AccountList.ItemsSource = displayAccounts;
-        PositionSubmenuRelative(AccountSubmenu, trigger, AccountList, 160, _cachedAccounts.Count * 48 + Math.Max(0, _cachedAccounts.Count - 1) * 5 + 8);
-        AccountSubmenu.Visibility = Visibility.Visible;
-        ((Storyboard)AccountSubmenu.Resources["OpenSubmenu"]).Begin(AccountSubmenu);
-    }
-
-    private async void AccountItem_Click(object sender, MouseButtonEventArgs e)
-    {
-        if (sender is Border b && b.Tag is SteamAccount acc)
-        {
-            AccountSubmenu.Visibility = Visibility.Collapsed;
-            SteamPanel.Visibility = Visibility.Collapsed;
-            await SwitchSteamAccountAsync(acc);
-        }
-    }
-
-    private void FabSubmenuItem_MouseEnter(object sender, MouseEventArgs e)
-    {
-        if (sender is Border b)
-            b.Background = (Brush)Application.Current.FindResource("SystemControlHighlightListMediumBrush");
-    }
-
-    private void FabSubmenuItem_MouseLeave(object sender, MouseEventArgs e)
-    {
-        if (sender is Border b)
-            b.Background = Brushes.Transparent;
-    }
-
-    private async Task SwitchSteamAccountAsync(SteamAccount target)
-    {
-        try
-        {
-            SteamProcess.KillSteamProcesses();
-            using (var key = Registry.CurrentUser.OpenSubKey(@"Software\Valve\Steam", writable: true))
-            {
-                if (key == null)
-                {
-                    await ShowModernDialogAsync(L.Get("Main_DialogError"), L.Get("Main_AccRegFailed"));
-                    return;
-                }
-                key.SetValue("AutoLoginUser", target.AccountName, RegistryValueKind.String);
-            }
-            var launchResult = SteamProcess.LaunchSteam(_steamPathService);
-            if (!launchResult.Ok)
-                await ShowModernDialogAsync(launchResult.Title, launchResult.Message);
-        }
-        catch (Exception ex)
-        {
-            await ShowModernDialogAsync(L.Get("Main_DialogError"), L.Get("Main_AccSwitchFailed", ex.Message));
-        }
-    }
-
-    private List<SteamAccount>? ParseLoginUsersVdf()
-    {
-        var steamPath = _steamPathService.DetectSteamPath();
-        if (string.IsNullOrEmpty(steamPath)) return null;
-
-        var vdfPath = System.IO.Path.Combine(steamPath, "config", "loginusers.vdf");
-        if (!System.IO.File.Exists(vdfPath)) return null;
-
-        try
-        {
-            var content = System.IO.File.ReadAllText(vdfPath);
-            var accounts = new List<SteamAccount>();
-
-            foreach (Match blockMatch in Regex.Matches(content, "\\\"(\\d+)\\\"\\s*\\{(?<body>.*?)\\}", RegexOptions.Singleline))
-            {
-                var body = blockMatch.Groups["body"].Value;
-                var accountName = GetVdfValue(body, "AccountName");
-                var personaName = GetVdfValue(body, "PersonaName");
-                if (string.IsNullOrEmpty(accountName))
-                    continue;
-
-                accounts.Add(new SteamAccount
-                {
-                    SteamId = blockMatch.Groups[1].Value,
-                    AccountName = accountName,
-                    PersonaName = string.IsNullOrEmpty(personaName) ? accountName : personaName,
-                });
-            }
-            return accounts;
-        }
-        catch { return null; }
-    }
-
-    private static string GetVdfValue(string block, string key)
-    {
-        var match = Regex.Match(block, $"\\\"{Regex.Escape(key)}\\\"\\s+\\\"([^\\\"]*)\\\"");
-        return match.Success ? match.Groups[1].Value : string.Empty;
-    }
-
-    private void PositionSubmenuRelative(Border submenu, Border trigger, ItemsControl list, double subW, double subH)
-    {
-        var panelLeft = Canvas.GetLeft(SteamPanel);
-        var panelTop = Canvas.GetTop(SteamPanel);
-        var panelW = SteamPanel.ActualWidth > 0 ? SteamPanel.ActualWidth : 130;
-        var canvasW = FabCanvas.ActualWidth;
-        var canvasH = FabCanvas.ActualHeight;
-        var fabTop = Canvas.GetTop(SteamFab);
-
-        var triggerPos = trigger.TranslatePoint(new Point(0, 0), FabCanvas);
-
-        var subLeft = panelLeft + panelW + 4 + subW <= canvasW - 8
-            ? panelLeft + panelW + 4
-            : panelLeft - subW - 4;
-
-        var subTop = triggerPos.Y;
-        bool panelAboveFab = panelTop < fabTop;
-        if (panelAboveFab)
-        {
-            if (subTop + subH >= fabTop)
-                subTop = fabTop - subH - 4;
-        }
-        else
-        {
-            if (subTop + subH >= canvasH - 8)
-                subTop = canvasH - subH - 8;
-        }
-        subTop = Math.Max(8, subTop);
-
-        // 展开原点跟随实际位置：右侧展开从左边缘长出，左侧展开从右边缘长出
-        submenu.RenderTransformOrigin = subLeft > panelLeft ? new Point(0, 0.5) : new Point(1, 0.5);
-
-        Canvas.SetLeft(submenu, Math.Max(8, subLeft));
-        Canvas.SetTop(submenu, subTop);
-    }
 }

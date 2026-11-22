@@ -92,8 +92,10 @@ public class GameMonitorService : BackgroundService
     private readonly Dictionary<string, Process> _activeTrainers = new(StringComparer.OrdinalIgnoreCase);
     private DateTime _lastRead = DateTime.MinValue;
 
+    // 与主程序共用同一份绑定：放在用户可写目录，安装目录（Program Files）只读时也能写
     private static string ConfigPath => Path.Combine(
-        AppContext.BaseDirectory, "bindings.json");
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "SteamLua", "bindings.json");
 
     public GameMonitorService(ILogger<GameMonitorService> logger)
     {

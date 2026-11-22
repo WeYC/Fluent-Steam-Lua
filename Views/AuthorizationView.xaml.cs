@@ -3,9 +3,9 @@ using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Input;
-using SteamLuaManager.ViewModels;
+using SteamLua.ViewModels;
 
-namespace SteamLuaManager.Views;
+namespace SteamLua.Views;
 
 /// <summary>
 /// 授权页：提取 + 导入 Denuvo 授权票据。
